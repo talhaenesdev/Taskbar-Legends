@@ -1,0 +1,248 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4eaf81e35080514ab9d9b42c016fe11, type: 3}
+  m_Name: ED_TestModuleDirectoryStructure
+  m_EditorClassIdentifier: FlowIoC.Editor::FlowIoC.Editor.Config.ModuleConfig.ED_TestModuleDirectoryStructure
+  <RootFolders>k__BackingField:
+  - rid: 5633828911642837361
+  - rid: 5633828911642837362
+  - rid: 5633828911642837363
+  - rid: 5633828911642837364
+  - rid: 5633828911642837365
+  - rid: 5633828911642837366
+  - rid: 5633828911642837367
+  - rid: 5633828911642837368
+  - rid: 5633828911642837369
+  references:
+    version: 2
+    RefIds:
+    - rid: 5633828911642837361
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Art
+        Type: 0
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837362
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Prefabs
+        Type: 15
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837363
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Resources
+        Type: 14
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837364
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Scenes
+        Type: 16
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837365
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Scriptables
+        Type: 0
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837366
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Scripts
+        Type: 0
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 0
+        SubFolders:
+        - rid: 5633828911642837370
+        - rid: 5633828911642837371
+    - rid: 5633828911642837367
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: zSubModules
+        Type: 10
+        IsMandatory: 0
+        IsOptional: 0
+        IsNamespaceProvider: 0
+        SubFolders: []
+    - rid: 5633828911642837368
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: zTestModules
+        Type: 11
+        IsMandatory: 0
+        IsOptional: 0
+        IsNamespaceProvider: 0
+        SubFolders: []
+    - rid: 5633828911642837369
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: zScreenModules
+        Type: 12
+        IsMandatory: 0
+        IsOptional: 0
+        IsNamespaceProvider: 0
+        SubFolders: []
+    - rid: 5633828911642837370
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Runtime
+        Type: 0
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 0
+        SubFolders:
+        - rid: 5633828911642837372
+        - rid: 5633828911642837373
+        - rid: 5633828911642837374
+        - rid: 5633828911642837375
+        - rid: 5633828911642837376
+        - rid: 5633828911642837377
+        - rid: 5633828911642837378
+        - rid: 5633828911642837379
+        - rid: 5633828911642837380
+        - rid: 5633828911642837381
+    - rid: 5633828911642837371
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Editor
+        Type: 13
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837372
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Data
+        Type: 0
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders:
+        - rid: 5633828911642837382
+        - rid: 5633828911642837383
+    - rid: 5633828911642837373
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Models
+        Type: 6
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837374
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Enums
+        Type: 0
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837375
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: RootsContexts
+        Type: 3
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837376
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Signals
+        Type: 18
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837377
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: ViewsMediators
+        Type: 1
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837378
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Services
+        Type: 4
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837379
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Constants
+        Type: 0
+        IsMandatory: 0
+        IsOptional: 1
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837380
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Controllers
+        Type: 5
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837381
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: Entities
+        Type: 0
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837382
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: UnityObjects
+        Type: 7
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []
+    - rid: 5633828911642837383
+      type: {class: FolderEVO, ns: FlowIoC.Editor.Config.ModuleConfig, asm: FlowIoC.Editor}
+      data:
+        FolderName: ValueObjects
+        Type: 8
+        IsMandatory: 1
+        IsOptional: 0
+        IsNamespaceProvider: 1
+        SubFolders: []

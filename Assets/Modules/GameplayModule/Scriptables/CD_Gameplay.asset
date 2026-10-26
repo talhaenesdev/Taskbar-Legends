@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4e24c9fa61f2bb4799d9ed474513462, type: 3}
+  m_Name: CD_Gameplay
+  m_EditorClassIdentifier: Modules.Gameplay::Modules.GameplayModule.Data.UnityObjects.CD_Gameplay
+  TurnSeconds: 0.8
+  EnemyGrowthPerLevel: 0.22
+  Hero:
+    BaseMaxHp: 120
+    MaxHpPerLevel: 18
+    BaseAttack: 12
+    AttackPerLevel: 3
+    CritChance: 0.12
+    CritMultiplier: 2
+    RegenPerTurn: 0.02
+    BaseExpToLevel: 50
+    ExpGrowth: 1.18
+  Enemies:
+  - Name: Goblin
+    MinHeroLevel: 1
+    BaseHp: 40
+    BaseAttack: 5
+    BaseExp: 12
+    BaseGold: 4
+    Tint: {r: 0.41960785, g: 0.79607844, b: 0.3529412, a: 1}
+  - Name: Dire Wolf
+    MinHeroLevel: 3
+    BaseHp: 55
+    BaseAttack: 7
+    BaseExp: 16
+    BaseGold: 5
+    Tint: {r: 0.6039216, g: 0.6392157, b: 0.70980394, a: 1}
+  - Name: Kobold Scout
+    MinHeroLevel: 5
+    BaseHp: 70
+    BaseAttack: 9
+    BaseExp: 20
+    BaseGold: 7
+    Tint: {r: 0.7882353, g: 0.5411765, b: 0.29411766, a: 1}
+  - Name: Stone Golem
+    MinHeroLevel: 8
+    BaseHp: 120
+    BaseAttack: 10
+    BaseExp: 28
+    BaseGold: 10
+    Tint: {r: 0.54901963, g: 0.49803922, b: 0.4392157, a: 1}
+  - Name: Ice Elf
+    MinHeroLevel: 12
+    BaseHp: 95
+    BaseAttack: 15
+    BaseExp: 34
+    BaseGold: 13
+    Tint: {r: 0.49803922, g: 0.8392157, b: 1, a: 1}
+  - Name: Orc Warrior
+    MinHeroLevel: 16
+    BaseHp: 150
+    BaseAttack: 17
+    BaseExp: 42
+    BaseGold: 16
+    Tint: {r: 0.30980393, g: 0.56078434, b: 0.22745098, a: 1}
+  - Name: Steel-Fanged Lycan
+    MinHeroLevel: 21
+    BaseHp: 170
+    BaseAttack: 22
+    BaseExp: 52
+    BaseGold: 20
+    Tint: {r: 0.72156864, g: 0.7607843, b: 0.8392157, a: 1}
+  - Name: Naga Priestess
+    MinHeroLevel: 27
+    BaseHp: 190
+    BaseAttack: 27
+    BaseExp: 64
+    BaseGold: 25
+    Tint: {r: 0.24705882, g: 0.72156864, b: 0.65882355, a: 1}
+  - Name: High Orc Chieftain
+    MinHeroLevel: 34
+    BaseHp: 260
+    BaseAttack: 31
+    BaseExp: 80
+    BaseGold: 32
+    Tint: {r: 0.7607843, g: 0.2901961, b: 0.22745098, a: 1}
+  - Name: Ant King
+    MinHeroLevel: 42
+    BaseHp: 320
+    BaseAttack: 38
+    BaseExp: 100
+    BaseGold: 42
+    Tint: {r: 0.47843137, g: 0.24705882, b: 0.8392157, a: 1}
+  Ranks:
+  - Rank: 0
+    MinLevel: 1
+    Title: E-Rank Hunter
+  - Rank: 1
+    MinLevel: 10
+    Title: D-Rank Hunter
+  - Rank: 2
+    MinLevel: 20
+    Title: C-Rank Hunter
+  - Rank: 3
+    MinLevel: 30
+    Title: B-Rank Hunter
+  - Rank: 4
+    MinLevel: 40
+    Title: A-Rank Hunter
+  - Rank: 5
+    MinLevel: 55
+    Title: S-Rank Hunter

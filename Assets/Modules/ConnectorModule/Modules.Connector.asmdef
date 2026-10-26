@@ -1,0 +1,24 @@
+{
+  "name": "Modules.Connector",
+  "rootNamespace": "",
+  "references": [
+    "FlowIoC",
+    "Modules.Main.Signals",
+    "Modules.Main.Screen.Signals",
+    "Modules.Gameplay.Screen.Signals",
+    "Modules.Loading.Signals",
+    "Modules.Loading.Shared",
+    "Modules.Loading.Screen.Signals",
+    "Modules.Gameplay.Signals",
+    "Modules.Gameplay.Shared"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

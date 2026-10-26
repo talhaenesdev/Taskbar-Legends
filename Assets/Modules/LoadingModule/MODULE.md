@@ -1,0 +1,79 @@
+# Loading
+
+## Purpose
+Shows, waits for and times the game's loading, and does none of the loading itself: steps are
+declared in `CD_LoadingSets`, grouped into sets with a presentation, the Command doing the work
+reports its step by name, and a set ends when every step it lists has completed, skipped or failed.
+
+## Concepts
+loading, progress bar, boot, splash, set, step, preload, stall, retry, spinner, waiting,
+ILoadingService, ILoadingStep, CD_LoadingSets, LoadingSetStatusRVO, ILoadingService.Commands.Begin,
+ILoadingService.Commands.Await, LoadingSpinner
+
+## Decisions
+- **A reporting Command names only its step.** Which set the step belongs to - and so whether the
+  boot waits for it - is `CD_LoadingSets`'s decision, so the critical path is tuned by editing the
+  asset and no Command changes. A step in no set is an error at the Command; a step in two sets is
+  an error at the asset.
+- **The service offers no "is X loaded" query.** A readiness registry would let one module depend
+  on another's load without a Connector, which is the crossing the rules forbid in disguise. Every
+  module knows its own readiness and announces it; the service shows, waits for its own sets, and
+  times.
+- **The service injects no other service.** Loading through `IPoolService` or `IScreenService`
+  here would mean knowing the game's group names and labels - Connector-shaped knowledge - and the
+  module would become the one everything depends on. The Command that does the work reports.
+- **A set completes itself** when every configured step has ended; a chain waits at
+  `ILoadingService.Commands.Await`. Nobody counts and nobody declares it done. A running set that hears
+  nothing for its `StallWarningSeconds` is reported once, naming the steps it waits for - the
+  silent hang both reference projects had. The report is a warning, not an error: the watch
+  cannot tell a hang from slow work that reports nothing - a backend call with no progress - and a
+  step with a deadline of its own reports Fail, which the loading screen answers with a retry.
+- **A set the module lets go of ends with it.** `LoadingModel.Deconstruct` - the context going, or
+  `Load` reading the asset again - ends a running set Failed, unannounced, and answers whoever still
+  awaits a set with `false`. The stall watch runs on the `CoroutineProvider`, which is
+  `DontDestroyOnLoad`, and stops only when its set ends: left running, a set torn down with its scene
+  kept the watch polling until Play ended and warning that it had heard nothing, and a chain at
+  `ILoadingService.Commands.Await` waiting for ever. A call that still arrives afterwards - a step
+  whose work outlived its own module - is ignored and said once, as a warning, rather than an
+  error per report that blames the config.
+- **Only a Fullscreen set announces that it began.** `FullscreenBegan` lets the Connector open the
+  loading screen without an `if`; `SetChanged`, `SetCompleted` and `SetFailed` reach it for every
+  set and its Mediator applies only the set it is showing.
+- **A screen that waits for its own data shows a spinner inside itself, not a screen over it.**
+  `Prefabs/LoadingSpinner` goes into the screen's prefab - a game changes the icon, the size or the
+  speed in a variant of it - and the screen's View switches it on before each opening and off when
+  it is filled. A screen over the panel blocked its close button until the data came; inside, the
+  player may leave without waiting. The service is not involved: the screen's own module knows when
+  its data is in. A wait that must block everything is a screen of the game's own with the spinner
+  inside. Overlay was a presentation until 2026-10-05; its enum value 2 is not reused.
+- **The spinner carries a Canvas of its own.** It turns every frame, and a turning element rebuilds
+  the canvas it sits on; nested, it rebuilds only itself and not the screen around it.
+- **A failed set reopens** when its failed step reports again, keeping the steps that succeeded;
+  `Begin` on it is a fresh run. The shipped retry re-runs the whole boot chain.
+- **The four Commands are synchronous.** Every command in a group receives the dispatch's
+  `[SignalParam]`, so the set key travels on `SetTouched` rather than through `Release(...)`, and
+  each Command is unit-tested by calling `Execute()`.
+- **The loading screen carries a tag, `LoadingConstants.SCREEN_TAG`, published in Shared.** A
+  loading screen cannot show its own load, so the boot loads the tag into the pool as its first
+  step - `.ToSequence<IScreenService.Commands.LoadByTag>(LoadingConstants.SCREEN_TAG)` - before the set it
+  shows begins; `Begin` then opens the screen from the pool, on stage the same frame, and every
+  load after it is drawn on the bar. The constant is here rather than in `MainConstants` because
+  the screen contexts read it too and a screen module reaches only its parent's Shared. It is
+  `ScreenTag.GroupA`; a game whose GroupA is taken moves it once, here.
+
+## Known gaps
+- Messages are shown as written; localisation is the game's, before it reports.
+- Warnings go where `FlowLogger` sends them, so with `SendLogsToUnityConsole` off they are in the
+  Flow Console only; errors reach both.
+
+Version: 1.2.2
+
+<!-- FLOWIOC:BEGIN version=1 hash=90103959 | generated by Tools/FlowIoC/Module Scanner - do not edit inside this block -->
+**Kind** Main · **Assemblies** Modules.Loading, Modules.Loading.Shared, Modules.Loading.Signals
+**Root** LoadingServiceRoot → LoadingServiceContext
+**Incoming** Begin(string)
+**Outgoing** FullscreenBegan(LoadingSetStatusRVO) · SetChanged(LoadingSetStatusRVO) · SetCompleted(string) · SetFailed(string, string)
+**Publishes** LoadingConstants, LoadingPresentation, LoadingSetState, LoadingSetStatusRVO
+**Services** ILoadingService, ILoadingStep
+**Sub modules** LoadingScreenModule (Screen) · LoadingTestModule (Test)
+<!-- FLOWIOC:END -->

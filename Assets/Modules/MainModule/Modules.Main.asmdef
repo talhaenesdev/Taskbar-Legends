@@ -1,0 +1,19 @@
+{
+  "name": "Modules.Main",
+  "references": [
+    "FlowIoC",
+    "Modules.Loading",
+    "Modules.Loading.Shared",
+    "Modules.Main.Signals",
+    "Modules.DesktopWindow"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
