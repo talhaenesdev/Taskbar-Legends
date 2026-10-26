@@ -4,11 +4,11 @@ using Modules.GameplayModule.Models;
 
 namespace Modules.GameplayModule.Controllers
 {
-    /// <summary>A fallen hero is brought back at full HP. Progress is kept; the creature that won is replaced.</summary>
-    internal class ReviveHeroCommand : Command
+    /// <summary>The whole party back at full HP. Progress is kept.</summary>
+    internal class RestorePartyCommand : Command
     {
         [Inject] private IHeroModel _heroModel { get; set; }
 
-        public override void Execute() => _heroModel.RestoreFullHp();
+        public override void Execute() => _heroModel.RestoreAll();
     }
 }

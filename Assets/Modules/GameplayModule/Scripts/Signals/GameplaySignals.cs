@@ -24,11 +24,11 @@ namespace Modules.GameplayModule.Signals
         public Signal<HeroStateVO> HeroChanged = new(hideCommandLog: true);
         public Signal<EnemyStateVO> EnemyChanged = new(hideCommandLog: true);
 
-        /// <summary>The damage of one of the hero's blows, and whether it was critical.</summary>
-        public Signal<int, bool> EnemyHit = new(hideCommandLog: true);
+        /// <summary>A party member struck the creature: who, the damage, and whether it was critical.</summary>
+        public Signal<PartyRole, int, bool> EnemyHit = new(hideCommandLog: true);
 
-        /// <summary>The damage of one of the creature's blows.</summary>
-        public Signal<int> HeroHit = new(hideCommandLog: true);
+        /// <summary>The creature struck a party member: who, and the damage.</summary>
+        public Signal<PartyRole, int> HeroHit = new(hideCommandLog: true);
 
         /// <summary>A plain line of the battle log.</summary>
         public Signal<string> CombatLogged = new(hideCommandLog: true);

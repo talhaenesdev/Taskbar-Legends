@@ -1,11 +1,13 @@
+using System.Collections.Generic;
+
 namespace Modules.GameplayModule.Data.ValueObjects
 {
-    /// <summary>The hero as one record: what the config says of it, what the save holds, its rank and its HP in play.</summary>
+    /// <summary>The party as one record: its growth config, its save, its rank and its members in play.</summary>
     internal class HeroVO
     {
         public HeroCVO Config;
         public HeroSVO Save;
         public RankCVO Rank;
-        public int Hp;
+        public List<PartyMemberVO> Members = new();
     }
 }

@@ -46,7 +46,7 @@ namespace Modules.GameplayModule.Controllers
             EnemyCVO picked = _unlocked[index];
             int level = Mathf.Max(1, _heroModel.Level + Random.Range(-1, 2));
 
-            _combatModel.Spawn(picked, level, config.EnemyGrowthPerLevel);
+            _combatModel.Spawn(picked, level, config.EnemyGrowthPerLevel, config.EnemyArrivalTurns);
             _signals.Outgoing.EnemyChanged.Dispatch(_combatModel.GetEnemyState());
             _signals.Outgoing.CombatLogged.Dispatch($"A wild {picked.Name} (Lv {level}) appears.");
         }

@@ -1,4 +1,5 @@
 using System;
+using Modules.GameplayModule.Shared.Enums;
 using UnityEngine;
 
 namespace Modules.GameplayModule.Data.ValueObjects
@@ -8,6 +9,8 @@ namespace Modules.GameplayModule.Data.ValueObjects
     public class EnemyCVO
     {
         public string Name = "Goblin";
+        public EnemyLook Look = EnemyLook.Goblin;
+        public float Scale = 1f;
         public int MinHeroLevel = 1;
         public int BaseHp = 40;
         public int BaseAttack = 5;

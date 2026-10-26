@@ -20,7 +20,7 @@ namespace Modules.GameplayModule.Controllers
             }
 
             _combatModel.IsRunning = true;
-            _heroModel.RestoreFullHp();
+            _heroModel.RestoreAll();
         }
     }
 }

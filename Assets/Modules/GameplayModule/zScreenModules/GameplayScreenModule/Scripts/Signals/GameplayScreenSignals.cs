@@ -1,5 +1,6 @@
 using FlowIoC.BaseModule.Signals;
 using Modules.GameplayModule.Shared.Data.ValueObjects;
+using Modules.GameplayModule.Shared.Enums;
 
 namespace Modules.GameplayModule.GameplayScreenModule.Signals
 {
@@ -17,8 +18,8 @@ namespace Modules.GameplayModule.GameplayScreenModule.Signals
         // The values below change while the window is up, each on its own, so each has a signal.
         public Signal<HeroStateVO> ApplyHero = new(hideCommandLog: true);
         public Signal<EnemyStateVO> ApplyEnemy = new(hideCommandLog: true);
-        public Signal<int, bool> ShowEnemyHit = new(hideCommandLog: true);
-        public Signal<int> ShowHeroHit = new(hideCommandLog: true);
+        public Signal<PartyRole, int, bool> ShowEnemyHit = new(hideCommandLog: true);
+        public Signal<PartyRole, int> ShowHeroHit = new(hideCommandLog: true);
         public Signal<string> ShowLog = new(hideCommandLog: true);
         public Signal<string> ShowAnnouncement = new();
     }

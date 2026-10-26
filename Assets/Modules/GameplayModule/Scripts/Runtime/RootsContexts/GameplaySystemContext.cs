@@ -50,7 +50,7 @@ namespace Modules.GameplayModule.RootsContexts
             // One turn, paced by its first step. The last step starts the next turn as a run of its own.
             CommandBinder.Bind(_internalSignals.Tick)
                 .ToSequence<WaitCombatTurnCommand>()
-                .ToSequence<HeroStrikeCommand>()
+                .ToSequence<PartyStrikeCommand>()
                 .ToSequence<JudgeEnemyDefeatCommand>()
                 .ToSequence<EnemyStrikeCommand>()
                 .ToSequence<JudgeHeroDefeatCommand>()
@@ -61,13 +61,14 @@ namespace Modules.GameplayModule.RootsContexts
                 .ToSequence<GrantRewardsCommand>()
                 .ToSequence<ApplyLevelUpsCommand>()
                 .ToSequence<ApplyRankCommand>()
+                .ToSequence<ReviveFallenCommand>()
                 .ToSequence<SaveHeroCommand>()
                 .ToSequence<SpawnEnemyCommand>()
                 .ToSequence<PublishHeroCommand>();
 
             CommandBinder.Bind(_internalSignals.HeroDefeated)
-                .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "You have died. Revival in progress...")
-                .ToSequence<ReviveHeroCommand>()
+                .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "Your party has fallen. Revival in progress...")
+                .ToSequence<RestorePartyCommand>()
                 .ToSequence<SpawnEnemyCommand>()
                 .ToSequence<PublishHeroCommand>()
                 .ToSequence<SaveHeroCommand>();

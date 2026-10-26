@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using Modules.GameplayModule.Shared.Enums;
 
 namespace Modules.GameplayModule.Shared.Data.ValueObjects
 {
     /// <summary>
-    /// What the hero looks like to anyone outside the gameplay module - a snapshot taken by the
-    /// Model, so a screen draws it without knowing how any of it is derived.
+    /// What the party looks like to anyone outside the gameplay module - a snapshot taken by the
+    /// Model, so a screen draws it without knowing how any of it is derived. Level, rank, EXP and
+    /// gold belong to the party as a whole; HP belongs to each member.
     /// </summary>
     [Serializable]
     public class HeroStateVO
@@ -17,9 +19,8 @@ namespace Modules.GameplayModule.Shared.Data.ValueObjects
         public long ExpToNextLevel;
         public long Gold;
         public int Kills;
-        public int Hp;
-        public int MaxHp;
         public int Attack;
         public float CritChance;
+        public List<PartyMemberStateVO> Members = new();
     }
 }

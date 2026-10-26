@@ -964,11 +964,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3596479513377466214, guid: 5eab67fd01e1fe1458865002ef2eeedd, type: 3}
       propertyPath: m_ReferenceResolution.x
-      value: 560
+      value: 640
       objectReference: {fileID: 0}
     - target: {fileID: 3596479513377466214, guid: 5eab67fd01e1fe1458865002ef2eeedd, type: 3}
       propertyPath: m_ReferenceResolution.y
-      value: 180
+      value: 240
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

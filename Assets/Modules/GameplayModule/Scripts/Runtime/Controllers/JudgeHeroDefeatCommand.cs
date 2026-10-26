@@ -5,7 +5,7 @@ using Modules.GameplayModule.Signals;
 
 namespace Modules.GameplayModule.Controllers
 {
-    /// <summary>A hero brought to zero runs the defeat flow: revive, and a fresh creature.</summary>
+    /// <summary>A party with nobody left standing runs the defeat flow: everyone revived, and a fresh creature.</summary>
     internal class JudgeHeroDefeatCommand : Command
     {
         [Inject] private IHeroModel _heroModel { get; set; }
@@ -13,7 +13,7 @@ namespace Modules.GameplayModule.Controllers
 
         public override void Execute()
         {
-            if (_heroModel.IsDead)
+            if (_heroModel.IsDefeated)
                 _internalSignals.HeroDefeated.Dispatch();
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FlowIoC.BaseModule.Adapters;
 using FlowIoC.BaseModule.Constructables;
 using FlowIoC.BaseModule.Injectable.Attributes;
@@ -13,8 +14,9 @@ namespace Modules.GameplayModule.Models
 {
     /// <summary>
     /// PostConstruct takes CD_Gameplay off the Root's adapter and the saved progress out of
-    /// PlayerPrefs, and puts both on one record. Everything derived from the level - max HP,
-    /// attack, the experience a level costs, the rank - is derived here and nowhere else.
+    /// PlayerPrefs, and builds one record for the party with one entry per member the config
+    /// lists. Everything derived from the level - max HP, attack, the experience a level costs, the
+    /// rank - is derived here and nowhere else.
     /// </summary>
     internal class HeroModel : IHeroModel, IConstructable
     {
@@ -29,12 +31,13 @@ namespace Modules.GameplayModule.Models
         public CD_Gameplay Config { get; private set; }
 
         public int Level => _hero.Save.Level;
-        public int Hp => _hero.Hp;
-        public int MaxHp => _hero.Config.BaseMaxHp + _hero.Config.MaxHpPerLevel * (Level - 1);
-        public int Attack => _hero.Config.BaseAttack + _hero.Config.AttackPerLevel * (Level - 1);
-        public int RegenPerTurn => Mathf.Max(1, Mathf.RoundToInt(MaxHp * _hero.Config.RegenPerTurn));
         public RankCVO Rank => _hero.Rank;
-        public bool IsDead => _hero.Hp <= 0;
+        public IReadOnlyList<PartyMemberVO> Members => _hero.Members;
+
+        public bool IsDefeated => FrontMember() == null;
+
+        private int PartyMaxHp => _hero.Config.BaseMaxHp + _hero.Config.MaxHpPerLevel * (Level - 1);
+        private int PartyAttack => _hero.Config.BaseAttack + _hero.Config.AttackPerLevel * (Level - 1);
 
         private long ExpToNextLevel =>
             Mathf.RoundToInt(_hero.Config.BaseExpToLevel * Mathf.Pow(_hero.Config.ExpGrowth, Level - 1));
@@ -53,13 +56,20 @@ namespace Modules.GameplayModule.Models
             Config = adapter.GetScriptable<CD_Gameplay>();
             if (Config == null)
             {
-                FlowLogger.LogError("GameplaySystemRoot's adapter files no CD_Gameplay, so the hero cannot be built.", _root);
+                FlowLogger.LogError("GameplaySystemRoot's adapter files no CD_Gameplay, so the party cannot be built.", _root);
                 return;
             }
 
+            if (Config.Party.Count == 0)
+                FlowLogger.LogError("CD_Gameplay lists no party member, so nobody can fight.", Config);
+
             _hero = new HeroVO { Config = Config.Hero, Save = LoadSave() };
             _hero.Rank = FindRank(Level);
-            _hero.Hp = MaxHp;
+
+            foreach (PartyMemberCVO member in Config.Party)
+                _hero.Members.Add(new PartyMemberVO { Config = member });
+
+            RestoreAll();
         }
 
         public void Deconstruct()
@@ -68,11 +78,44 @@ namespace Modules.GameplayModule.Models
             Config = null;
         }
 
-        public void Damage(int amount) => _hero.Hp = Mathf.Max(0, _hero.Hp - Mathf.Max(0, amount));
+        public int MaxHpOf(PartyMemberVO member) => Mathf.Max(1, Mathf.RoundToInt(PartyMaxHp * member.Config.HpShare));
+        public int AttackOf(PartyMemberVO member) => Mathf.Max(1, Mathf.RoundToInt(PartyAttack * member.Config.AttackShare));
+        public int RegenOf(PartyMemberVO member) => Mathf.Max(1, Mathf.RoundToInt(MaxHpOf(member) * _hero.Config.RegenPerTurn));
 
-        public void Heal(int amount) => _hero.Hp = Mathf.Min(MaxHp, _hero.Hp + Mathf.Max(0, amount));
+        public PartyMemberVO FrontMember()
+        {
+            foreach (PartyMemberVO member in _hero.Members)
+            {
+                if (!member.IsDown)
+                    return member;
+            }
 
-        public void RestoreFullHp() => _hero.Hp = MaxHp;
+            return null;
+        }
+
+        public void Damage(PartyMemberVO member, int amount) => member.Hp = Mathf.Max(0, member.Hp - Mathf.Max(0, amount));
+
+        public void Heal(PartyMemberVO member, int amount)
+        {
+            // A member who is down stays down until something revives it.
+            if (member.IsDown) return;
+            member.Hp = Mathf.Min(MaxHpOf(member), member.Hp + Mathf.Max(0, amount));
+        }
+
+        public void RestoreAll()
+        {
+            foreach (PartyMemberVO member in _hero.Members)
+                member.Hp = MaxHpOf(member);
+        }
+
+        public void ReviveFallen(float share)
+        {
+            foreach (PartyMemberVO member in _hero.Members)
+            {
+                if (member.IsDown)
+                    member.Hp = Mathf.Max(1, Mathf.RoundToInt(MaxHpOf(member) * share));
+            }
+        }
 
         public void GrantRewards(int exp, int gold)
         {
@@ -88,11 +131,21 @@ namespace Modules.GameplayModule.Models
             if (_hero.Save.Exp < cost)
                 return false;
 
-            // The HP a level adds is granted with it, so a level gained mid-fight is felt at once.
-            int maxHpBefore = MaxHp;
+            // The HP a level adds is granted with it to everyone standing, so a level gained mid-fight is felt at once.
+            var before = new int[_hero.Members.Count];
+            for (int i = 0; i < before.Length; i++)
+                before[i] = MaxHpOf(_hero.Members[i]);
+
             _hero.Save.Exp -= cost;
             _hero.Save.Level++;
-            _hero.Hp += MaxHp - maxHpBefore;
+
+            for (int i = 0; i < before.Length; i++)
+            {
+                PartyMemberVO member = _hero.Members[i];
+                if (!member.IsDown)
+                    member.Hp += MaxHpOf(member) - before[i];
+            }
+
             return true;
         }
 
@@ -106,20 +159,34 @@ namespace Modules.GameplayModule.Models
             return true;
         }
 
-        public HeroStateVO GetState() => new()
+        public HeroStateVO GetState()
         {
-            Level = Level,
-            Rank = _hero.Rank?.Rank ?? default,
-            RankTitle = _hero.Rank?.Title ?? string.Empty,
-            Exp = _hero.Save.Exp,
-            ExpToNextLevel = ExpToNextLevel,
-            Gold = _hero.Save.Gold,
-            Kills = _hero.Save.Kills,
-            Hp = _hero.Hp,
-            MaxHp = MaxHp,
-            Attack = Attack,
-            CritChance = _hero.Config.CritChance,
-        };
+            var state = new HeroStateVO
+            {
+                Level = Level,
+                Rank = _hero.Rank?.Rank ?? default,
+                RankTitle = _hero.Rank?.Title ?? string.Empty,
+                Exp = _hero.Save.Exp,
+                ExpToNextLevel = ExpToNextLevel,
+                Gold = _hero.Save.Gold,
+                Kills = _hero.Save.Kills,
+                Attack = PartyAttack,
+                CritChance = _hero.Config.CritChance,
+            };
+
+            foreach (PartyMemberVO member in _hero.Members)
+            {
+                state.Members.Add(new PartyMemberStateVO
+                {
+                    Role = member.Config.Role,
+                    Name = member.Config.Name,
+                    Hp = member.Hp,
+                    MaxHp = MaxHpOf(member),
+                });
+            }
+
+            return state;
+        }
 
         public void Save()
         {

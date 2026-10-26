@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4e24c9fa61f2bb4799d9ed474513462, type: 3}
   m_Name: CD_Gameplay
   m_EditorClassIdentifier: Modules.Gameplay::Modules.GameplayModule.Data.UnityObjects.CD_Gameplay
-  TurnSeconds: 0.8
+  TurnSeconds: 0.45
+  EnemyArrivalTurns: 3
+  EnemyAttackEveryTurns: 2
+  ReviveShareAfterKill: 0.35
   EnemyGrowthPerLevel: 0.22
   Hero:
     BaseMaxHp: 120
@@ -24,77 +27,110 @@ MonoBehaviour:
     RegenPerTurn: 0.02
     BaseExpToLevel: 50
     ExpGrowth: 1.18
+  Party:
+  - Role: 0
+    Name: Warrior
+    HpShare: 1.25
+    AttackShare: 1
+  - Role: 1
+    Name: Archer
+    HpShare: 0.85
+    AttackShare: 0.9
+  - Role: 2
+    Name: Mage
+    HpShare: 0.7
+    AttackShare: 1.35
   Enemies:
-  - Name: Goblin
+  - Name: Blue Slime
+    Look: 0
+    Scale: 0.8
     MinHeroLevel: 1
-    BaseHp: 40
-    BaseAttack: 5
-    BaseExp: 12
-    BaseGold: 4
+    BaseHp: 36
+    BaseAttack: 4
+    BaseExp: 10
+    BaseGold: 3
+    Tint: {r: 0.24705882, g: 0.627451, b: 0.8784314, a: 1}
+  - Name: Goblin
+    Look: 1
+    Scale: 1
+    MinHeroLevel: 2
+    BaseHp: 48
+    BaseAttack: 6
+    BaseExp: 14
+    BaseGold: 5
     Tint: {r: 0.41960785, g: 0.79607844, b: 0.3529412, a: 1}
   - Name: Dire Wolf
-    MinHeroLevel: 3
-    BaseHp: 55
-    BaseAttack: 7
-    BaseExp: 16
-    BaseGold: 5
+    Look: 2
+    Scale: 1
+    MinHeroLevel: 4
+    BaseHp: 60
+    BaseAttack: 8
+    BaseExp: 18
+    BaseGold: 6
     Tint: {r: 0.6039216, g: 0.6392157, b: 0.70980394, a: 1}
-  - Name: Kobold Scout
-    MinHeroLevel: 5
-    BaseHp: 70
-    BaseAttack: 9
-    BaseExp: 20
-    BaseGold: 7
-    Tint: {r: 0.7882353, g: 0.5411765, b: 0.29411766, a: 1}
-  - Name: Stone Golem
-    MinHeroLevel: 8
-    BaseHp: 120
+  - Name: Skeleton Soldier
+    Look: 3
+    Scale: 1
+    MinHeroLevel: 7
+    BaseHp: 85
     BaseAttack: 10
-    BaseExp: 28
-    BaseGold: 10
-    Tint: {r: 0.54901963, g: 0.49803922, b: 0.4392157, a: 1}
-  - Name: Ice Elf
-    MinHeroLevel: 12
-    BaseHp: 95
-    BaseAttack: 15
-    BaseExp: 34
-    BaseGold: 13
-    Tint: {r: 0.49803922, g: 0.8392157, b: 1, a: 1}
-  - Name: Orc Warrior
-    MinHeroLevel: 16
+    BaseExp: 24
+    BaseGold: 9
+    Tint: {r: 0.9098039, g: 0.89411765, b: 0.84705883, a: 1}
+  - Name: Stone Golem
+    Look: 4
+    Scale: 1.15
+    MinHeroLevel: 10
     BaseHp: 150
-    BaseAttack: 17
-    BaseExp: 42
-    BaseGold: 16
-    Tint: {r: 0.30980393, g: 0.56078434, b: 0.22745098, a: 1}
+    BaseAttack: 11
+    BaseExp: 32
+    BaseGold: 12
+    Tint: {r: 0.5529412, g: 0.5137255, b: 0.45882353, a: 1}
+  - Name: Orc Warrior
+    Look: 5
+    Scale: 1.15
+    MinHeroLevel: 14
+    BaseHp: 140
+    BaseAttack: 16
+    BaseExp: 40
+    BaseGold: 15
+    Tint: {r: 0.37254903, g: 0.6039216, b: 0.22745098, a: 1}
   - Name: Steel-Fanged Lycan
-    MinHeroLevel: 21
+    Look: 2
+    Scale: 1.3
+    MinHeroLevel: 19
     BaseHp: 170
-    BaseAttack: 22
-    BaseExp: 52
-    BaseGold: 20
+    BaseAttack: 21
+    BaseExp: 50
+    BaseGold: 19
     Tint: {r: 0.72156864, g: 0.7607843, b: 0.8392157, a: 1}
-  - Name: Naga Priestess
-    MinHeroLevel: 27
-    BaseHp: 190
-    BaseAttack: 27
-    BaseExp: 64
-    BaseGold: 25
-    Tint: {r: 0.24705882, g: 0.72156864, b: 0.65882355, a: 1}
+  - Name: Skeleton Knight
+    Look: 3
+    Scale: 1.25
+    MinHeroLevel: 25
+    BaseHp: 200
+    BaseAttack: 25
+    BaseExp: 62
+    BaseGold: 24
+    Tint: {r: 0.84705883, g: 0.8156863, b: 0.7529412, a: 1}
   - Name: High Orc Chieftain
-    MinHeroLevel: 34
-    BaseHp: 260
-    BaseAttack: 31
-    BaseExp: 80
-    BaseGold: 32
+    Look: 5
+    Scale: 1.4
+    MinHeroLevel: 32
+    BaseHp: 270
+    BaseAttack: 30
+    BaseExp: 78
+    BaseGold: 31
     Tint: {r: 0.7607843, g: 0.2901961, b: 0.22745098, a: 1}
-  - Name: Ant King
-    MinHeroLevel: 42
-    BaseHp: 320
-    BaseAttack: 38
-    BaseExp: 100
-    BaseGold: 42
-    Tint: {r: 0.47843137, g: 0.24705882, b: 0.8392157, a: 1}
+  - Name: Ancient Golem
+    Look: 4
+    Scale: 1.55
+    MinHeroLevel: 40
+    BaseHp: 360
+    BaseAttack: 36
+    BaseExp: 98
+    BaseGold: 40
+    Tint: {r: 0.43529412, g: 0.8784314, b: 1, a: 1}
   Ranks:
   - Rank: 0
     MinLevel: 1
