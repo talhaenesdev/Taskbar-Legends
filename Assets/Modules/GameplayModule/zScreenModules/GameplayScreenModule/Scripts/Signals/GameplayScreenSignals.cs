@@ -22,9 +22,18 @@ namespace Modules.GameplayModule.GameplayScreenModule.Signals
         public Signal<PartyRole, int> ShowHeroHit = new(hideCommandLog: true);
         public Signal<string> ShowLog = new(hideCommandLog: true);
         public Signal<string> ShowAnnouncement = new();
+        public Signal<PartyRole, PartyRole, int> ShowHeal = new(hideCommandLog: true);
+
+        /// <summary>A level-up choice to put up over the battle.</summary>
+        public Signal<UpgradeOfferVO> ShowUpgradeOffer = new();
+
+        /// <summary>The choice with that id was answered; take it down if it is the one up.</summary>
+        public Signal<int> HideUpgradeOffer = new();
     }
 
     public class GameplayScreenSignalsOutgoing
     {
+        /// <summary>The player clicked a card: the offer's id, and the card's index.</summary>
+        public Signal<int, int> UpgradeChosen = new();
     }
 }

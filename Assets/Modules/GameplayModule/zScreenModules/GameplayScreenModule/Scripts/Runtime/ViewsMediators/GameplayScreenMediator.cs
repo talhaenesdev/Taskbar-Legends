@@ -37,9 +37,13 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _signals.Incoming.ShowHeroHit.AddListener(_view.ShowHeroHit);
             _signals.Incoming.ShowLog.AddListener(_view.AddLog);
             _signals.Incoming.ShowAnnouncement.AddListener(_view.Announce);
+            _signals.Incoming.ShowHeal.AddListener(_view.ShowHeal);
+            _signals.Incoming.ShowUpgradeOffer.AddListener(_view.ShowUpgradeOffer);
+            _signals.Incoming.HideUpgradeOffer.AddListener(_view.HideUpgradeOffer);
 
             _view.DragBegan += OnDragBegan;
             _view.Dragged += OnDragged;
+            _view.UpgradeChosen += OnUpgradeChosen;
         }
 
         private void OnScreenHidden(IScreenBody screen)
@@ -50,9 +54,21 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _signals.Incoming.ShowHeroHit.RemoveListener(_view.ShowHeroHit);
             _signals.Incoming.ShowLog.RemoveListener(_view.AddLog);
             _signals.Incoming.ShowAnnouncement.RemoveListener(_view.Announce);
+            _signals.Incoming.ShowHeal.RemoveListener(_view.ShowHeal);
+            _signals.Incoming.ShowUpgradeOffer.RemoveListener(_view.ShowUpgradeOffer);
+            _signals.Incoming.HideUpgradeOffer.RemoveListener(_view.HideUpgradeOffer);
 
             _view.DragBegan -= OnDragBegan;
             _view.Dragged -= OnDragged;
+            _view.UpgradeChosen -= OnUpgradeChosen;
+        }
+
+        private void OnUpgradeChosen(int offerId, int index)
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _signals.Outgoing.UpgradeChosen.Dispatch(offerId, index);
         }
 
         private void OnDragBegan()

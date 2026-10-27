@@ -22,7 +22,7 @@ namespace Modules.GameplayModule.Controllers
             // Taken into a local: the wait outlives nothing of this instance but the model it reads.
             ICombatModel combatModel = _combatModel;
 
-            _coroutineProvider.WaitForSeconds(_heroModel.Config.TurnSeconds, () =>
+            _coroutineProvider.WaitForSeconds(_heroModel.TurnSeconds, () =>
             {
                 if (combatModel.IsRunning)
                     Release();

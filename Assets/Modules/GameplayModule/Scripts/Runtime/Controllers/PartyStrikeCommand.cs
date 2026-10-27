@@ -8,9 +8,10 @@ using UnityEngine;
 namespace Modules.GameplayModule.Controllers
 {
     /// <summary>
-    /// The party member whose turn it is strikes the creature: its attack, a little spread, and a
-    /// critical now and then. A member who is down loses the turn; nobody strikes a creature that
-    /// is still walking in.
+    /// The party member whose turn it is acts. A healer mends the most hurt member while anybody
+    /// is below the healing threshold; everyone else - and a healer with nobody to mend - strikes
+    /// the creature as many times as their role allows, each blow with its own chance to be
+    /// critical. A member who is down loses the turn; nobody acts while the creature walks in.
     /// </summary>
     internal class PartyStrikeCommand : Command
     {
@@ -31,14 +32,36 @@ namespace Modules.GameplayModule.Controllers
             if (member.IsDown)
                 return;
 
-            bool isCritical = Random.value < _heroModel.Config.Hero.CritChance;
-            float multiplier = isCritical ? _heroModel.Config.Hero.CritMultiplier : 1f;
+            if (member.Config.HealPower > 0f && TryHeal(member))
+                return;
+
+            for (int hit = 0; hit < member.Config.Hits && !_combatModel.IsEnemyDead; hit++)
+                Strike(member);
+
+            _signals.Outgoing.EnemyChanged.Dispatch(_combatModel.GetEnemyState());
+        }
+
+        private bool TryHeal(PartyMemberVO healer)
+        {
+            PartyMemberVO target = _heroModel.MostHurtMember();
+            if (target == null || _heroModel.HpShareOf(target) >= _heroModel.Config.HealBelowShare)
+                return false;
+
+            int amount = Mathf.Max(1, Mathf.RoundToInt(_heroModel.AttackOf(healer) * healer.Config.HealPower));
+            _heroModel.Heal(target, amount);
+
+            _signals.Outgoing.MemberHealed.Dispatch(healer.Config.Role, target.Config.Role, amount);
+            return true;
+        }
+
+        private void Strike(PartyMemberVO member)
+        {
+            bool isCritical = Random.value < _heroModel.CritChanceOf(member);
+            float multiplier = isCritical ? _heroModel.CritMultiplier : 1f;
             int damage = Mathf.Max(1, Mathf.RoundToInt(_heroModel.AttackOf(member) * Random.Range(0.85f, 1.15f) * multiplier));
 
             _combatModel.DamageEnemy(damage);
-
             _signals.Outgoing.EnemyHit.Dispatch(member.Config.Role, damage, isCritical);
-            _signals.Outgoing.EnemyChanged.Dispatch(_combatModel.GetEnemyState());
         }
     }
 }

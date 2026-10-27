@@ -7,7 +7,8 @@ namespace Modules.ConnectorModule.RootsContexts
 {
     /// <summary>
     /// The battle and its window meet here. RunStarted opens the window already filled; every
-    /// change after that reaches the open window on a signal of its own.
+    /// change after that reaches the open window on a signal of its own. The one thing the window
+    /// sends back is the card the player picked.
     /// </summary>
     public class GameplayConnectorSubContext : Context
     {
@@ -24,6 +25,7 @@ namespace Modules.ConnectorModule.RootsContexts
             _gameplayScreenSignals = InjectionBinderCrossContext.GetInstance<GameplayScreenSignals>();
 
             IncomingSignals();
+            OutgoingSignals();
         }
 
         private void IncomingSignals()
@@ -38,7 +40,13 @@ namespace Modules.ConnectorModule.RootsContexts
             outgoing.HeroHit.Connect(screen.ShowHeroHit, GROUP);
             outgoing.CombatLogged.Connect(screen.ShowLog, GROUP);
             outgoing.SystemAnnounced.Connect(screen.ShowAnnouncement, GROUP);
+            outgoing.MemberHealed.Connect(screen.ShowHeal, GROUP);
+            outgoing.UpgradeOffered.Connect(screen.ShowUpgradeOffer, GROUP);
+            outgoing.UpgradeOfferClosed.Connect(screen.HideUpgradeOffer, GROUP);
         }
+
+        private void OutgoingSignals() =>
+            _gameplayScreenSignals.Outgoing.UpgradeChosen.Connect(_gameplaySignals.Incoming.ChooseUpgrade, GROUP);
 
         public override void DestroyContext()
         {

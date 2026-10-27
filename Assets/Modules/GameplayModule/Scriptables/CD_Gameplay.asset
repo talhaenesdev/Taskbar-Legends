@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: CD_Gameplay
   m_EditorClassIdentifier: Modules.Gameplay::Modules.GameplayModule.Data.UnityObjects.CD_Gameplay
   TurnSeconds: 0.45
+  MinTurnSeconds: 0.2
   EnemyArrivalTurns: 3
   EnemyAttackEveryTurns: 2
   ReviveShareAfterKill: 0.35
-  EnemyGrowthPerLevel: 0.22
+  HealBelowShare: 0.7
   Hero:
     BaseMaxHp: 120
     MaxHpPerLevel: 18
@@ -30,21 +31,199 @@ MonoBehaviour:
   Party:
   - Role: 0
     Name: Warrior
+    Description: Holds the front line with sword and shield.
+    StartsInParty: 1
+    UnlockLevel: 1
     HpShare: 1.25
     AttackShare: 1
+    CritBonus: 0
+    Hits: 1
+    HealPower: 0
+  - Role: 4
+    Name: Rogue
+    Description: Strikes twice a turn, often critically.
+    StartsInParty: 0
+    UnlockLevel: 9
+    HpShare: 0.75
+    AttackShare: 0.55
+    CritBonus: 0.2
+    Hits: 2
+    HealPower: 0
   - Role: 1
     Name: Archer
+    Description: Looses arrows from behind the line.
+    StartsInParty: 0
+    UnlockLevel: 2
     HpShare: 0.85
     AttackShare: 0.9
+    CritBonus: 0.05
+    Hits: 1
+    HealPower: 0
+  - Role: 3
+    Name: Priest
+    Description: Heals whoever is hurt the most.
+    StartsInParty: 0
+    UnlockLevel: 6
+    HpShare: 0.8
+    AttackShare: 0.6
+    CritBonus: 0
+    Hits: 1
+    HealPower: 1.6
   - Role: 2
     Name: Mage
+    Description: Hurls fireballs for heavy damage.
+    StartsInParty: 0
+    UnlockLevel: 4
     HpShare: 0.7
     AttackShare: 1.35
+    CritBonus: 0
+    Hits: 1
+    HealPower: 0
+  OfferOptionCount: 3
+  AutoPickSeconds: 12
+  Upgrades:
+  - Id: attack_all
+    Kind: 1
+    Role: 0
+    AllRoles: 1
+    Amount: 0.1
+    MaxStacks: 0
+    Weight: 1.2
+    Title: Sharpened Blades
+    Description: All heroes +10% attack
+  - Id: health_all
+    Kind: 2
+    Role: 0
+    AllRoles: 1
+    Amount: 0.12
+    MaxStacks: 0
+    Weight: 1.2
+    Title: Iron Will
+    Description: All heroes +12% max HP
+  - Id: attack_warrior
+    Kind: 1
+    Role: 0
+    AllRoles: 0
+    Amount: 0.25
+    MaxStacks: 0
+    Weight: 1
+    Title: Berserker's Edge
+    Description: Warrior +25% attack
+  - Id: health_warrior
+    Kind: 2
+    Role: 0
+    AllRoles: 0
+    Amount: 0.3
+    MaxStacks: 0
+    Weight: 1
+    Title: Tower Shield
+    Description: Warrior +30% max HP
+  - Id: attack_archer
+    Kind: 1
+    Role: 1
+    AllRoles: 0
+    Amount: 0.25
+    MaxStacks: 0
+    Weight: 1
+    Title: Eagle Eye
+    Description: Archer +25% attack
+  - Id: attack_mage
+    Kind: 1
+    Role: 2
+    AllRoles: 0
+    Amount: 0.25
+    MaxStacks: 0
+    Weight: 1
+    Title: Arcane Surge
+    Description: Mage +25% attack
+  - Id: attack_priest
+    Kind: 1
+    Role: 3
+    AllRoles: 0
+    Amount: 0.3
+    MaxStacks: 0
+    Weight: 1
+    Title: Divine Blessing
+    Description: Priest heals and strikes +30%
+  - Id: attack_rogue
+    Kind: 1
+    Role: 4
+    AllRoles: 0
+    Amount: 0.25
+    MaxStacks: 0
+    Weight: 1
+    Title: Poisoned Daggers
+    Description: Rogue +25% attack
+  - Id: crit_chance
+    Kind: 3
+    Role: 0
+    AllRoles: 1
+    Amount: 0.04
+    MaxStacks: 10
+    Weight: 0.9
+    Title: Keen Senses
+    Description: +4% critical chance
+  - Id: crit_damage
+    Kind: 4
+    Role: 0
+    AllRoles: 1
+    Amount: 0.25
+    MaxStacks: 8
+    Weight: 0.8
+    Title: Deadly Precision
+    Description: +25% critical damage
+  - Id: regen
+    Kind: 5
+    Role: 0
+    AllRoles: 1
+    Amount: 0.01
+    MaxStacks: 6
+    Weight: 0.8
+    Title: Regeneration
+    Description: +1% HP regained every turn
+  - Id: gold
+    Kind: 6
+    Role: 0
+    AllRoles: 1
+    Amount: 0.15
+    MaxStacks: 0
+    Weight: 0.7
+    Title: Golden Touch
+    Description: +15% gold from kills
+  - Id: exp
+    Kind: 7
+    Role: 0
+    AllRoles: 1
+    Amount: 0.12
+    MaxStacks: 0
+    Weight: 0.7
+    Title: Scholar's Insight
+    Description: +12% EXP from kills
+  - Id: speed
+    Kind: 8
+    Role: 0
+    AllRoles: 1
+    Amount: 0.06
+    MaxStacks: 5
+    Weight: 0.7
+    Title: Haste
+    Description: Turns come 6% faster
+  FloorKillsToBoss: 10
+  EnemyLevelsPerFloor: 2
+  EnemyGrowthPerLevel: 0.22
+  EliteChance: 0.12
+  EliteHpMultiplier: 2
+  EliteAttackMultiplier: 1.4
+  EliteRewardMultiplier: 2.5
+  BossHpMultiplier: 5
+  BossAttackMultiplier: 1.6
+  BossRewardMultiplier: 6
+  BossScaleMultiplier: 1.35
   Enemies:
   - Name: Blue Slime
     Look: 0
     Scale: 0.8
-    MinHeroLevel: 1
+    MinFloor: 1
     BaseHp: 36
     BaseAttack: 4
     BaseExp: 10
@@ -53,7 +232,7 @@ MonoBehaviour:
   - Name: Goblin
     Look: 1
     Scale: 1
-    MinHeroLevel: 2
+    MinFloor: 1
     BaseHp: 48
     BaseAttack: 6
     BaseExp: 14
@@ -62,7 +241,7 @@ MonoBehaviour:
   - Name: Dire Wolf
     Look: 2
     Scale: 1
-    MinHeroLevel: 4
+    MinFloor: 2
     BaseHp: 60
     BaseAttack: 8
     BaseExp: 18
@@ -71,7 +250,7 @@ MonoBehaviour:
   - Name: Skeleton Soldier
     Look: 3
     Scale: 1
-    MinHeroLevel: 7
+    MinFloor: 3
     BaseHp: 85
     BaseAttack: 10
     BaseExp: 24
@@ -80,7 +259,7 @@ MonoBehaviour:
   - Name: Stone Golem
     Look: 4
     Scale: 1.15
-    MinHeroLevel: 10
+    MinFloor: 4
     BaseHp: 150
     BaseAttack: 11
     BaseExp: 32
@@ -89,16 +268,25 @@ MonoBehaviour:
   - Name: Orc Warrior
     Look: 5
     Scale: 1.15
-    MinHeroLevel: 14
+    MinFloor: 5
     BaseHp: 140
     BaseAttack: 16
     BaseExp: 40
     BaseGold: 15
     Tint: {r: 0.37254903, g: 0.6039216, b: 0.22745098, a: 1}
+  - Name: Soldier Ant
+    Look: 6
+    Scale: 1
+    MinFloor: 6
+    BaseHp: 120
+    BaseAttack: 18
+    BaseExp: 44
+    BaseGold: 17
+    Tint: {r: 0.2901961, g: 0.24313726, b: 0.4, a: 1}
   - Name: Steel-Fanged Lycan
     Look: 2
     Scale: 1.3
-    MinHeroLevel: 19
+    MinFloor: 7
     BaseHp: 170
     BaseAttack: 21
     BaseExp: 50
@@ -107,30 +295,57 @@ MonoBehaviour:
   - Name: Skeleton Knight
     Look: 3
     Scale: 1.25
-    MinHeroLevel: 25
+    MinFloor: 8
     BaseHp: 200
     BaseAttack: 25
     BaseExp: 62
     BaseGold: 24
     Tint: {r: 0.84705883, g: 0.8156863, b: 0.7529412, a: 1}
+  - Name: Lesser Demon
+    Look: 7
+    Scale: 1.15
+    MinFloor: 9
+    BaseHp: 220
+    BaseAttack: 28
+    BaseExp: 70
+    BaseGold: 28
+    Tint: {r: 0.7529412, g: 0.19607843, b: 0.22745098, a: 1}
   - Name: High Orc Chieftain
     Look: 5
     Scale: 1.4
-    MinHeroLevel: 32
+    MinFloor: 10
     BaseHp: 270
     BaseAttack: 30
     BaseExp: 78
     BaseGold: 31
     Tint: {r: 0.7607843, g: 0.2901961, b: 0.22745098, a: 1}
+  - Name: Royal Guard Ant
+    Look: 6
+    Scale: 1.35
+    MinFloor: 12
+    BaseHp: 320
+    BaseAttack: 34
+    BaseExp: 90
+    BaseGold: 36
+    Tint: {r: 0.41568628, g: 0.30588236, b: 0.5882353, a: 1}
   - Name: Ancient Golem
     Look: 4
     Scale: 1.55
-    MinHeroLevel: 40
+    MinFloor: 14
     BaseHp: 360
     BaseAttack: 36
     BaseExp: 98
     BaseGold: 40
     Tint: {r: 0.43529412, g: 0.8784314, b: 1, a: 1}
+  - Name: Demon Lord
+    Look: 7
+    Scale: 1.5
+    MinFloor: 16
+    BaseHp: 420
+    BaseAttack: 42
+    BaseExp: 120
+    BaseGold: 50
+    Tint: {r: 1, g: 0.2509804, b: 0.2509804, a: 1}
   Ranks:
   - Rank: 0
     MinLevel: 1

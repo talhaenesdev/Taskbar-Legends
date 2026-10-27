@@ -5,7 +5,10 @@ using Modules.GameplayModule.Signals;
 
 namespace Modules.GameplayModule.Controllers
 {
-    /// <summary>Spends the experience on every level it pays for - a big kill may be worth more than one - and announces the last.</summary>
+    /// <summary>
+    /// Spends the experience on every level it pays for - a big kill may be worth more than one -
+    /// earns a level-up choice for each, and announces the last level reached.
+    /// </summary>
     internal class ApplyLevelUpsCommand : Command
     {
         [Inject] private IHeroModel _heroModel { get; set; }
@@ -15,7 +18,10 @@ namespace Modules.GameplayModule.Controllers
         {
             int gained = 0;
             while (_heroModel.TryLevelUp())
+            {
+                _heroModel.AddPendingUpgrade();
                 gained++;
+            }
 
             if (gained == 0)
                 return;

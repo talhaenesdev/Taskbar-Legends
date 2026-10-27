@@ -6,5 +6,7 @@ namespace Modules.GameplayModule.Shared.Enums
         Warrior = 0,
         Archer = 1,
         Mage = 2,
+        Priest = 3,
+        Rogue = 4,
     }
 }

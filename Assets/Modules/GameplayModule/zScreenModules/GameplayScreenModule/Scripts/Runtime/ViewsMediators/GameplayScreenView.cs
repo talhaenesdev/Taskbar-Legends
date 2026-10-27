@@ -39,7 +39,19 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             public Sprite Hurt;
         }
 
+        [Serializable]
+        public class UpgradeCard
+        {
+            public Button Button;
+            public Image Icon;
+            public Image RoleIcon;
+            public Text Title;
+            public Text Description;
+        }
+
         private const float FLOOR_Y = 58f;
+        private const float FRONT_X = 290f;
+        private const float MEMBER_SPACING = 58f;
         private const float ENEMY_HOME_X = 470f;
         private const float ENEMY_ENTER_X = 720f;
         private const float BODY_SIZE = 80f;
@@ -82,6 +94,12 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
         [SerializeField] private Sprite[] _slashFrames;
         [SerializeField] private Image _sparkTemplate;
         [SerializeField] private Sprite[] _sparkFrames;
+        [SerializeField] private Image _healTemplate;
+        [SerializeField] private Sprite[] _healFrames;
+        [SerializeField] private Color _healColor = new(0.45f, 1f, 0.5f);
+        [SerializeField] private Color _eliteTint = new(1f, 0.62f, 0.62f);
+        [SerializeField] private Color _eliteNameColor = new(1f, 0.6f, 0.3f);
+        [SerializeField] private Color _bossNameColor = new(1f, 0.3f, 0.3f);
         [SerializeField] private Text _popupTemplate;
         [SerializeField] private Color _criticalColor = new(1f, 0.82f, 0.25f);
         [SerializeField] private Color _enemyDamageColor = Color.white;
@@ -95,14 +113,36 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
         [SerializeField] private Text _goldText;
         [SerializeField] private Text _killsText;
         [SerializeField] private Text _logText;
+        [SerializeField] private Text _floorText;
         [SerializeField] private CanvasGroup _announcementGroup;
         [SerializeField] private Text _announcementText;
+
+        [Header("Level-up choice")]
+        [SerializeField] private GameObject _offerPanel;
+        [SerializeField] private Image _offerTimerFill;
+        [SerializeField] private UpgradeCard[] _cards;
+
+        /// <summary>One per UpgradeKind, in the enum's order.</summary>
+        [SerializeField] private Sprite[] _kindIcons;
+
+        /// <summary>One per PartyRole, in the enum's order.</summary>
+        [SerializeField] private Sprite[] _roleIcons;
 
         public Action DragBegan;
         public Action Dragged;
 
+        /// <summary>A card was clicked: the offer's id, and the card's index.</summary>
+        public Action<int, int> UpgradeChosen;
+
+        private int _offerId;
+        private float _offerSeconds;
+        private float _offerLeft;
+        private bool _isOfferUp;
+
         private readonly Stack<Text> _popupPool = new();
         private readonly Stack<Image> _sparkPool = new();
+        private readonly Stack<Image> _healPool = new();
+        private readonly HashSet<PartyRole> _shownRoles = new();
         private readonly Dictionary<PartyRole, PartySlot> _slots = new();
         private readonly Dictionary<PartyRole, float> _memberHpTargets = new();
 
@@ -125,11 +165,33 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _expTarget = Ratio(hero.Exp, hero.ExpToNextLevel);
             _goldText.text = $"{hero.Gold:N0} G";
             _killsText.text = $"KILLS {hero.Kills:N0}";
+            _floorText.text = hero.FloorKills >= hero.FloorKillsToBoss
+                ? $"FLOOR {hero.Floor}  ·  BOSS"
+                : $"FLOOR {hero.Floor}  ·  {hero.FloorKills}/{hero.FloorKillsToBoss}";
 
+            // Only the members who have joined stand on the stage, front to back from the right. A figure
+            // already standing is left on, so its animation runs on through the update.
+            _shownRoles.Clear();
             foreach (PartyMemberStateVO member in hero.Members)
+                _shownRoles.Add(member.Role);
+
+            foreach (PartySlot slot in _party)
             {
+                if (!_shownRoles.Contains(slot.Role))
+                    slot.Actor.gameObject.SetActive(false);
+            }
+
+            for (int i = 0; i < hero.Members.Count; i++)
+            {
+                PartyMemberStateVO member = hero.Members[i];
                 if (!Slots.TryGetValue(member.Role, out PartySlot slot))
                     continue;
+
+                float x = FRONT_X - i * MEMBER_SPACING;
+                ((RectTransform) slot.Actor.transform).anchoredPosition = new Vector2(x, FLOOR_Y);
+                slot.HpBar.anchoredPosition = new Vector2(x, slot.HpBar.anchoredPosition.y);
+                if (!slot.Actor.gameObject.activeSelf)
+                    slot.Actor.gameObject.SetActive(true);
 
                 bool isDown = member.Hp <= 0;
                 if (slot.Actor.IsDown != isDown)
@@ -138,6 +200,60 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
                 slot.HpBar.gameObject.SetActive(!isDown);
                 _memberHpTargets[member.Role] = Ratio(member.Hp, member.MaxHp);
             }
+
+            foreach (PartySlot slot in _party)
+            {
+                if (!slot.Actor.gameObject.activeSelf)
+                    slot.HpBar.gameObject.SetActive(false);
+            }
+        }
+
+        public void ShowHeal(PartyRole healer, PartyRole target, int amount)
+        {
+            if (!Slots.TryGetValue(healer, out PartySlot healerSlot) || !Slots.TryGetValue(target, out PartySlot targetSlot))
+                return;
+
+            healerSlot.Actor.PlayAttack();
+            Vector2 at = ((RectTransform) targetSlot.Actor.transform).anchoredPosition + new Vector2(0f, 40f);
+            Image heal = _healPool.Count > 0 ? _healPool.Pop() : Instantiate(_healTemplate, _effects);
+            StartCoroutine(PlayPooledFrames(heal, _healFrames, at, 0.09f, _healPool));
+            SpawnPopup(at + new Vector2(0f, 22f), $"+{amount}", _healColor, 1f);
+        }
+
+        public void ShowUpgradeOffer(UpgradeOfferVO offer)
+        {
+            _offerId = offer.OfferId;
+            _offerSeconds = Mathf.Max(0.1f, offer.AutoPickSeconds);
+            _offerLeft = _offerSeconds;
+            _isOfferUp = true;
+
+            for (int i = 0; i < _cards.Length; i++)
+            {
+                UpgradeCard card = _cards[i];
+                bool isUsed = i < offer.Options.Count;
+                card.Button.gameObject.SetActive(isUsed);
+                if (!isUsed) continue;
+
+                UpgradeOptionVO option = offer.Options[i];
+                card.Title.text = option.Title;
+                card.Description.text = option.Description;
+                card.Icon.sprite = _kindIcons[Mathf.Clamp((int) option.Kind, 0, _kindIcons.Length - 1)];
+
+                bool showsRole = !option.AllRoles;
+                card.RoleIcon.gameObject.SetActive(showsRole);
+                if (showsRole)
+                    card.RoleIcon.sprite = _roleIcons[Mathf.Clamp((int) option.Role, 0, _roleIcons.Length - 1)];
+            }
+
+            _offerPanel.SetActive(true);
+        }
+
+        public void HideUpgradeOffer(int offerId)
+        {
+            if (offerId != _offerId) return;
+
+            _isOfferUp = false;
+            _offerPanel.SetActive(false);
         }
 
         public void ShowEnemy(EnemyStateVO enemy)
@@ -213,9 +329,27 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _slash.gameObject.SetActive(false);
             _enemy.gameObject.SetActive(false);
             _enemyHud.gameObject.SetActive(false);
+            _healTemplate.gameObject.SetActive(false);
+            _isOfferUp = false;
+            _offerPanel.SetActive(false);
 
             foreach (PartySlot slot in _party)
                 slot.Actor.SetDown(false);
+        }
+
+        private void OnEnable()
+        {
+            for (int i = 0; i < _cards.Length; i++)
+            {
+                int index = i;
+                _cards[i].Button.onClick.AddListener(() => UpgradeChosen?.Invoke(_offerId, index));
+            }
+        }
+
+        private void OnDisable()
+        {
+            foreach (UpgradeCard card in _cards)
+                card.Button.onClick.RemoveAllListeners();
         }
 
         private Dictionary<PartyRole, PartySlot> Slots
@@ -238,6 +372,12 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             {
                 Scroll(_ruins, _ruinsWalkSpeed, dt);
                 Scroll(_ground, _groundWalkSpeed, dt);
+            }
+
+            if (_isOfferUp)
+            {
+                _offerLeft = Mathf.Max(0f, _offerLeft - dt);
+                _offerTimerFill.fillAmount = _offerLeft / _offerSeconds;
             }
 
             float step = dt * BAR_EASE_SPEED;
@@ -285,7 +425,9 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
 
             EnemyBody body = Array.Find(_enemyBodies, b => b.Look == next.Look) ?? _enemyBodies[0];
             _enemy.SetFrames(body.Idle, body.Attack, body.Hurt);
+            _enemy.SetTint(next.IsElite ? _eliteTint : Color.white);
             _enemy.SetAlpha(1f);
+            _enemyNameText.color = next.IsBoss ? _bossNameColor : next.IsElite ? _eliteNameColor : Color.white;
             _enemyScale = Mathf.Max(0.5f, next.Scale);
             enemyRoot.localScale = new Vector3(-_enemyScale, _enemyScale, 1f);
             enemyRoot.anchoredPosition = new Vector2(ENEMY_ENTER_X, FLOOR_Y);
@@ -371,6 +513,12 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
         {
             yield return PlayFrames(spark, _sparkFrames, at + new Vector2(UnityEngine.Random.Range(-8f, 8f), UnityEngine.Random.Range(-8f, 8f)), 0.06f);
             _sparkPool.Push(spark);
+        }
+
+        private static IEnumerator PlayPooledFrames(Image image, Sprite[] frames, Vector2 at, float secondsPerFrame, Stack<Image> pool)
+        {
+            yield return PlayFrames(image, frames, at, secondsPerFrame);
+            pool.Push(image);
         }
 
         private static IEnumerator PlayFrames(Image image, Sprite[] frames, Vector2 at, float secondsPerFrame)

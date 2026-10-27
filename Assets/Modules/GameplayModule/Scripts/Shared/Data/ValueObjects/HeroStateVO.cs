@@ -21,6 +21,10 @@ namespace Modules.GameplayModule.Shared.Data.ValueObjects
         public int Kills;
         public int Attack;
         public float CritChance;
+
+        public int Floor;
+        public int FloorKills;
+        public int FloorKillsToBoss;
         public List<PartyMemberStateVO> Members = new();
     }
 }

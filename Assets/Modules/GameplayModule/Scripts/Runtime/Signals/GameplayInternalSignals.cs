@@ -9,5 +9,11 @@ namespace Modules.GameplayModule.Signals
 
         public Signal EnemyDefeated = new();
         public Signal HeroDefeated = new();
+
+        /// <summary>Waits out the offer with that id, and answers it for the player when nobody has.</summary>
+        public Signal<int> WatchUpgradeOffer = new();
+
+        /// <summary>A card is taken for the player: the offer's id, and the card's index.</summary>
+        public Signal<int, int> AutoChooseUpgrade = new();
     }
 }

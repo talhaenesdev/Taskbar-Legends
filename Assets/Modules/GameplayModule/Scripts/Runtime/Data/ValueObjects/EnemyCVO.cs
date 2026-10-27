@@ -11,7 +11,10 @@ namespace Modules.GameplayModule.Data.ValueObjects
         public string Name = "Goblin";
         public EnemyLook Look = EnemyLook.Goblin;
         public float Scale = 1f;
-        public int MinHeroLevel = 1;
+
+        /// <summary>The floor from which it starts to appear.</summary>
+        public int MinFloor = 1;
+
         public int BaseHp = 40;
         public int BaseAttack = 5;
         public int BaseExp = 12;

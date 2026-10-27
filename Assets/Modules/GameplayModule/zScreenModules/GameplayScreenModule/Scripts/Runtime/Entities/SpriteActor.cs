@@ -32,6 +32,7 @@ namespace Modules.GameplayModule.GameplayScreenModule.Entities
         private bool _isDown;
         private float _hurtUntil;
         private Coroutine _lunge;
+        private Color _tint = Color.white;
 
         public RectTransform Body => _body.rectTransform;
         public bool IsDown => _isDown;
@@ -61,7 +62,14 @@ namespace Modules.GameplayModule.GameplayScreenModule.Entities
             Draw();
         }
 
-        public void SetAlpha(float alpha) => _body.color = new Color(1f, 1f, 1f, alpha);
+        /// <summary>Colours the whole body - a creature's elite glow. White is the sprite as drawn.</summary>
+        public void SetTint(Color tint)
+        {
+            _tint = tint;
+            _body.color = new Color(tint.r, tint.g, tint.b, _body.color.a);
+        }
+
+        public void SetAlpha(float alpha) => _body.color = new Color(_tint.r, _tint.g, _tint.b, alpha);
 
         /// <summary>The body darts by offset and back, over seconds - a melee strike or a creature's pounce.</summary>
         public void Lunge(float offset, float seconds)

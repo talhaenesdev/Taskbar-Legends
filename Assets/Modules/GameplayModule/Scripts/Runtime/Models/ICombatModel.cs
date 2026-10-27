@@ -11,8 +11,8 @@ namespace Modules.GameplayModule.Models
         EnemyRVO Enemy { get; }
         bool IsEnemyDead { get; }
 
-        /// <summary>Puts a creature of that kind on the field, scaled to the level, walking in for arrivalTurns turns.</summary>
-        void Spawn(EnemyCVO config, int level, float growthPerLevel, int arrivalTurns);
+        /// <summary>Puts the creature decided on the field, scaled to its level, walking in for arrivalTurns turns.</summary>
+        void Spawn(EnemySpawnVO spawn, float growthPerLevel, int arrivalTurns);
 
         void DamageEnemy(int amount);
 

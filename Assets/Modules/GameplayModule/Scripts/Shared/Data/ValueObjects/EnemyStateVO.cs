@@ -18,5 +18,7 @@ namespace Modules.GameplayModule.Shared.Data.ValueObjects
         public EnemyLook Look;
         public float Scale = 1f;
         public Color Tint;
+        public bool IsElite;
+        public bool IsBoss;
     }
 }

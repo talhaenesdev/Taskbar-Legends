@@ -5,12 +5,16 @@ namespace Modules.GameplayModule.Data.ValueObjects
     {
         public int SpawnId;
         public EnemyCVO Config;
+        public string Name;
         public int Level;
+        public float Scale;
         public int MaxHp;
         public int Hp;
         public int Attack;
         public int Exp;
         public int Gold;
+        public bool IsElite;
+        public bool IsBoss;
 
         /// <summary>Turns left while the creature is still walking in; nobody strikes until it has arrived.</summary>
         public int ArrivalTurns;

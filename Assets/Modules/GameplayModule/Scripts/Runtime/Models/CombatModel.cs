@@ -15,22 +15,29 @@ namespace Modules.GameplayModule.Models
         public EnemyRVO Enemy { get; private set; }
         public bool IsEnemyDead => Enemy == null || Enemy.Hp <= 0;
 
-        public void Spawn(EnemyCVO config, int level, float growthPerLevel, int arrivalTurns)
+        public void Spawn(EnemySpawnVO spawn, float growthPerLevel, int arrivalTurns)
         {
-            level = Mathf.Max(1, level);
-            float scale = 1f + growthPerLevel * (level - 1);
-            int maxHp = Mathf.Max(1, Mathf.RoundToInt(config.BaseHp * scale));
+            EnemyCVO config = spawn.Config;
+            int level = Mathf.Max(1, spawn.Level);
+            float growth = 1f + growthPerLevel * (level - 1);
+            int maxHp = Mathf.Max(1, Mathf.RoundToInt(config.BaseHp * growth * spawn.HpMultiplier));
+
+            string name = spawn.IsBoss ? $"[BOSS] {config.Name}" : spawn.IsElite ? $"Elite {config.Name}" : config.Name;
 
             Enemy = new EnemyRVO
             {
                 SpawnId = ++_spawnCount,
                 Config = config,
+                Name = name,
                 Level = level,
+                Scale = config.Scale * spawn.ScaleMultiplier,
                 MaxHp = maxHp,
                 Hp = maxHp,
-                Attack = Mathf.Max(1, Mathf.RoundToInt(config.BaseAttack * scale)),
-                Exp = Mathf.Max(1, Mathf.RoundToInt(config.BaseExp * scale)),
-                Gold = Mathf.Max(0, Mathf.RoundToInt(config.BaseGold * scale)),
+                Attack = Mathf.Max(1, Mathf.RoundToInt(config.BaseAttack * growth * spawn.AttackMultiplier)),
+                Exp = Mathf.Max(1, Mathf.RoundToInt(config.BaseExp * growth * spawn.RewardMultiplier)),
+                Gold = Mathf.Max(0, Mathf.RoundToInt(config.BaseGold * growth * spawn.RewardMultiplier)),
+                IsElite = spawn.IsElite,
+                IsBoss = spawn.IsBoss,
                 ArrivalTurns = Mathf.Max(0, arrivalTurns),
             };
 
@@ -63,13 +70,15 @@ namespace Modules.GameplayModule.Models
             : new EnemyStateVO
             {
                 SpawnId = Enemy.SpawnId,
-                Name = Enemy.Config.Name,
+                Name = Enemy.Name,
                 Level = Enemy.Level,
                 Hp = Enemy.Hp,
                 MaxHp = Enemy.MaxHp,
                 Look = Enemy.Config.Look,
-                Scale = Enemy.Config.Scale,
+                Scale = Enemy.Scale,
                 Tint = Enemy.Config.Tint,
+                IsElite = Enemy.IsElite,
+                IsBoss = Enemy.IsBoss,
             };
     }
 }

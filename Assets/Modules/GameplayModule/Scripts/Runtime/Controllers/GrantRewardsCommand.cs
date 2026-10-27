@@ -6,7 +6,7 @@ using Modules.GameplayModule.Signals;
 
 namespace Modules.GameplayModule.Controllers
 {
-    /// <summary>The defeated creature's experience and gold go to the hero, and the kill is counted.</summary>
+    /// <summary>The defeated creature's experience and gold go to the party, with its upgrades, and the kill is counted.</summary>
     internal class GrantRewardsCommand : Command
     {
         [Inject] private ICombatModel _combatModel { get; set; }
@@ -17,10 +17,10 @@ namespace Modules.GameplayModule.Controllers
         {
             EnemyRVO enemy = _combatModel.Enemy;
 
-            _heroModel.GrantRewards(enemy.Exp, enemy.Gold);
+            (int exp, int gold) = _heroModel.GrantRewards(enemy.Exp, enemy.Gold);
             _heroModel.CountKill();
 
-            _signals.Outgoing.CombatLogged.Dispatch($"{enemy.Config.Name} defeated. +{enemy.Exp} EXP  +{enemy.Gold} G");
+            _signals.Outgoing.CombatLogged.Dispatch($"{enemy.Name} defeated. +{exp} EXP  +{gold} G");
         }
     }
 }

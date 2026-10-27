@@ -14,11 +14,14 @@ namespace Modules.GameplayModule.Signals
     {
         /// <summary>Starts the idle battle loop. A second start while it runs does nothing.</summary>
         public Signal StartRun = new();
+
+        /// <summary>The player picked a card of a level-up choice: the offer's id, and the card's index.</summary>
+        public Signal<int, int> ChooseUpgrade = new();
     }
 
     public class GameplaySignalsOutgoing
     {
-        /// <summary>The run is up: the hero and the first creature, for whatever shows them.</summary>
+        /// <summary>The run is up: the party and the first creature, for whatever shows them.</summary>
         public Signal<HeroStateVO, EnemyStateVO> RunStarted = new();
 
         public Signal<HeroStateVO> HeroChanged = new(hideCommandLog: true);
@@ -30,12 +33,21 @@ namespace Modules.GameplayModule.Signals
         /// <summary>The creature struck a party member: who, and the damage.</summary>
         public Signal<PartyRole, int> HeroHit = new(hideCommandLog: true);
 
+        /// <summary>A healer mended a party member: the healer, the one healed, and how much.</summary>
+        public Signal<PartyRole, PartyRole, int> MemberHealed = new(hideCommandLog: true);
+
         /// <summary>A plain line of the battle log.</summary>
         public Signal<string> CombatLogged = new(hideCommandLog: true);
 
-        /// <summary>A System window notice - a level gained, a rank reached, a death.</summary>
+        /// <summary>A System window notice - a level gained, a rank reached, a floor cleared, a death.</summary>
         public Signal<string> SystemAnnounced = new();
 
         public Signal<HeroRank> RankedUp = new();
+
+        /// <summary>A level-up choice is waiting for the player.</summary>
+        public Signal<UpgradeOfferVO> UpgradeOffered = new();
+
+        /// <summary>The choice with that id has been answered, by the player or for them.</summary>
+        public Signal<int> UpgradeOfferClosed = new();
     }
 }

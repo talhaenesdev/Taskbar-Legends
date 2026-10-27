@@ -9,5 +9,7 @@ namespace Modules.GameplayModule.Shared.Enums
         Skeleton = 3,
         Golem = 4,
         Orc = 5,
+        Ant = 6,
+        Demon = 7,
     }
 }

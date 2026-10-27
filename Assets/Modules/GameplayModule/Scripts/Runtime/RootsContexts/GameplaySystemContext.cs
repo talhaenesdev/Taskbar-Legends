@@ -8,8 +8,9 @@ namespace Modules.GameplayModule.RootsContexts
 {
     /// <summary>
     /// The idle battle. A run starts once and then loops for ever: each turn waits until it is due,
-    /// the hero strikes, the creature strikes back, and a defeat on either side runs its own flow
-    /// inside the turn before the next one is dispatched.
+    /// one party member acts, the creature strikes back, and a defeat on either side runs its own
+    /// flow inside the turn before the next one is dispatched. Level-up choices are offered between
+    /// kills and answered on their own flow, so the battle never waits on the player.
     /// </summary>
     public class GameplaySystemContext : Context
     {
@@ -29,6 +30,7 @@ namespace Modules.GameplayModule.RootsContexts
 
             InjectionBinder.Bind<IHeroModel, HeroModel>();
             InjectionBinder.Bind<ICombatModel, CombatModel>();
+            InjectionBinder.Bind<IUpgradeOfferModel, UpgradeOfferModel>();
         }
 
         public override void MediationBindings()
@@ -45,6 +47,7 @@ namespace Modules.GameplayModule.RootsContexts
                 .ToSequence<SpawnEnemyCommand>()
                 .ToSequence<AnnounceRunStartedCommand>()
                 .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "You have been chosen as a Player.")
+                .ToSequence<OfferUpgradeCommand>()
                 .ToSequence<SignalDispatchCommand>(_internalSignals.Tick);
 
             // One turn, paced by its first step. The last step starts the next turn as a run of its own.
@@ -59,19 +62,36 @@ namespace Modules.GameplayModule.RootsContexts
 
             CommandBinder.Bind(_internalSignals.EnemyDefeated)
                 .ToSequence<GrantRewardsCommand>()
+                .ToSequence<JudgeFloorProgressCommand>()
                 .ToSequence<ApplyLevelUpsCommand>()
                 .ToSequence<ApplyRankCommand>()
                 .ToSequence<ReviveFallenCommand>()
                 .ToSequence<SaveHeroCommand>()
                 .ToSequence<SpawnEnemyCommand>()
-                .ToSequence<PublishHeroCommand>();
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<OfferUpgradeCommand>();
 
             CommandBinder.Bind(_internalSignals.HeroDefeated)
-                .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "Your party has fallen. Revival in progress...")
+                .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "Your party has fallen. The floor starts over...")
                 .ToSequence<RestorePartyCommand>()
+                .ToSequence<ResetFloorProgressCommand>()
                 .ToSequence<SpawnEnemyCommand>()
                 .ToSequence<PublishHeroCommand>()
                 .ToSequence<SaveHeroCommand>();
+
+            // A level-up choice: waited out on its own, answered by the player or for them, and the next one offered.
+            CommandBinder.Bind(_internalSignals.WatchUpgradeOffer).ToSequence<WatchUpgradeOfferCommand>();
+            CommandBinder.Bind(_signals.Incoming.ChooseUpgrade)
+                .ToSequence<ApplyUpgradeCommand>()
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<SaveHeroCommand>()
+                .ToSequence<OfferUpgradeCommand>();
+
+            CommandBinder.Bind(_internalSignals.AutoChooseUpgrade)
+                .ToSequence<ApplyUpgradeCommand>()
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<SaveHeroCommand>()
+                .ToSequence<OfferUpgradeCommand>();
         }
 
         public override void Setup()
