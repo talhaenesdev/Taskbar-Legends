@@ -2,6 +2,7 @@ using FlowIoC.ScreenModule.Data;
 using FlowIoC.ScreenModule.Enums;
 using FlowIoC.ScreenModule.RootsContexts;
 using Modules.GameplayModule.GameplayScreenModule.Controllers;
+using Modules.GameplayModule.GameplayScreenModule.Models;
 using Modules.GameplayModule.GameplayScreenModule.Signals;
 using Modules.GameplayModule.GameplayScreenModule.ViewsMediators;
 
@@ -29,14 +30,40 @@ namespace Modules.GameplayModule.GameplayScreenModule.RootsContexts
             _internalSignals = InjectionBinder.Bind<GameplayScreenInternalSignals>();
         }
 
+        public override void InjectionBindings()
+        {
+            base.InjectionBindings();
+            InjectionBinder.Bind<IWindowSettingsModel, WindowSettingsModel>();
+        }
+
         public override void CommandBindings()
         {
             base.CommandBindings();
 
-            CommandBinder.Bind(_signals.Incoming.OpenGameplayScreen).ToSequence<OpenGameplayScreenCommand>();
+            CommandBinder.Bind(_signals.Incoming.OpenGameplayScreen)
+                .ToSequence<ApplyWindowSettingsCommand>()
+                .ToSequence<OpenGameplayScreenCommand>();
 
             CommandBinder.Bind(_internalSignals.WindowDragBegan).ToSequence<BeginWindowDragCommand>();
             CommandBinder.Bind(_internalSignals.WindowDragged).ToSequence<DragWindowCommand>();
+
+            CommandBinder.Bind(_internalSignals.OpacityClicked)
+                .ToSequence<CycleOpacityCommand>()
+                .ToSequence<ApplyWindowSettingsCommand>()
+                .ToSequence<SaveWindowSettingsCommand>()
+                .ToSequence<PublishWindowSettingsCommand>();
+
+            CommandBinder.Bind(_internalSignals.TopmostClicked)
+                .ToSequence<ToggleTopmostCommand>()
+                .ToSequence<ApplyWindowSettingsCommand>()
+                .ToSequence<SaveWindowSettingsCommand>()
+                .ToSequence<PublishWindowSettingsCommand>();
+
+            CommandBinder.Bind(_internalSignals.StartWithWindowsClicked)
+                .ToSequence<ToggleStartWithWindowsCommand>()
+                .ToSequence<PublishWindowSettingsCommand>();
+
+            CommandBinder.Bind(_internalSignals.TrayClicked).ToSequence<HideToTrayCommand>();
         }
     }
 }

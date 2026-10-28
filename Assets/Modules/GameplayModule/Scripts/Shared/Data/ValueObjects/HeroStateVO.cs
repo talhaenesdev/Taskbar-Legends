@@ -26,5 +26,25 @@ namespace Modules.GameplayModule.Shared.Data.ValueObjects
         public int FloorKills;
         public int FloorKillsToBoss;
         public List<PartyMemberStateVO> Members = new();
+
+        /// <summary>The shop in the config's order; a purchase names an item by its index here.</summary>
+        public List<ShopItemStateVO> Shop = new();
+
+        /// <summary>The body of every shadow soldier raised, oldest first.</summary>
+        public List<EnemyLook> Shadows = new();
+
+        /// <summary>The share of attack the shadow army adds - 0.12 is +12%.</summary>
+        public float ShadowAttackBonus;
+
+        public int Essence;
+        public int Reawakenings;
+
+        /// <summary>The share Essence adds to attack, HP, gold and EXP.</summary>
+        public float EssenceBonus;
+
+        public bool CanReawaken;
+        public int ReawakenMinFloor;
+        public int EssenceOnReawaken;
+        public int BestFloor;
     }
 }

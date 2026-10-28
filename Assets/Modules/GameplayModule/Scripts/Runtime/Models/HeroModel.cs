@@ -49,6 +49,17 @@ namespace Modules.GameplayModule.Models
         public bool IsBossDue => _hero.Save.FloorKills >= Config.FloorKillsToBoss;
         public int PendingUpgrades => _hero.Save.PendingUpgrades;
 
+        public double SecondsAway { get; private set; }
+
+        public int ShadowCount => _hero.Save.Shadows.Count;
+        public bool HasShadowRoom => ShadowCount < Config.MaxShadows;
+        public float ShadowAttackBonus => ShadowCount * Config.ShadowAttackBonus;
+
+        public int Essence => _hero.Save.Essence;
+        public float EssenceBonus => Essence * Config.EssenceBonus;
+        public bool CanReawaken => Floor >= Config.ReawakenMinFloor;
+        public int EssenceOnReawaken => Mathf.Max(1, Mathf.RoundToInt(Floor * Config.EssencePerFloor));
+
         private int PartyMaxHp => _hero.Config.BaseMaxHp + _hero.Config.MaxHpPerLevel * (Level - 1);
         private int PartyAttack => _hero.Config.BaseAttack + _hero.Config.AttackPerLevel * (Level - 1);
 
@@ -76,7 +87,11 @@ namespace Modules.GameplayModule.Models
             _hero = new HeroVO { Config = Config.Hero, Save = LoadSave() };
             _hero.Rank = FindRank(Level);
 
+            long savedTicks = _hero.Save.LastSavedTicks;
+            SecondsAway = savedTicks > 0 ? System.Math.Max(0d, (System.DateTime.UtcNow.Ticks - savedTicks) / (double) System.TimeSpan.TicksPerSecond) : 0d;
+
             FillUpgrades();
+            FillShop();
             FillMembers();
             RestoreAll();
         }
@@ -160,6 +175,68 @@ namespace Modules.GameplayModule.Models
 
         public void CountKill() => _hero.Save.Kills++;
 
+        public void CountKills(int count) => _hero.Save.Kills += Mathf.Max(0, count);
+
+        public void ClearSecondsAway() => SecondsAway = 0d;
+
+        public ShopItemVO FindShopItem(int index) => index >= 0 && index < _hero.Shop.Count ? _hero.Shop[index] : null;
+
+        public bool IsMaxed(ShopItemVO item) => item.Config.MaxLevel > 0 && item.Save.Count >= item.Config.MaxLevel;
+
+        public long CostOf(ShopItemVO item) =>
+            (long) System.Math.Round(item.Config.BaseCost * System.Math.Pow(item.Config.CostGrowth, item.Save.Count));
+
+        public bool TryBuy(ShopItemVO item)
+        {
+            long cost = CostOf(item);
+            if (IsMaxed(item) || _hero.Save.Gold < cost)
+                return false;
+
+            // A level bought is felt at once, like a level gained.
+            int[] before = MaxHps();
+            _hero.Save.Gold -= cost;
+            item.Save.Count++;
+            GrantMaxHpGain(before);
+            return true;
+        }
+
+        public void AddShadow(string name, EnemyLook look)
+        {
+            if (!HasShadowRoom)
+                return;
+
+            int[] before = MaxHps();
+            _hero.Save.Shadows.Add(new ShadowSVO { Name = name, Look = look });
+            GrantMaxHpGain(before);
+        }
+
+        public int Reawaken()
+        {
+            int gained = EssenceOnReawaken;
+            HeroSVO save = _hero.Save;
+
+            save.Essence += gained;
+            save.Reawakenings++;
+            save.BestFloor = Mathf.Max(save.BestFloor, save.Floor);
+
+            // The climb starts over; the shop, the shadows and the Essence carry on.
+            save.Level = 1;
+            save.Exp = 0;
+            save.Gold = 0;
+            save.Floor = 1;
+            save.FloorKills = 0;
+            save.PendingUpgrades = 0;
+            save.Recruited.Clear();
+            foreach (UpgradeVO upgrade in _hero.Upgrades.Values)
+                upgrade.Save.Count = 0;
+
+            _hero.Rank = FindRank(Level);
+            _hero.Members.Clear();
+            FillMembers();
+            RestoreAll();
+            return gained;
+        }
+
         public bool TryLevelUp()
         {
             long cost = ExpToNextLevel;
@@ -190,6 +267,7 @@ namespace Modules.GameplayModule.Models
         {
             _hero.Save.Floor++;
             _hero.Save.FloorKills = 0;
+            _hero.Save.BestFloor = Mathf.Max(_hero.Save.BestFloor, _hero.Save.Floor);
         }
 
         public void ResetFloorProgress() => _hero.Save.FloorKills = 0;
@@ -252,7 +330,35 @@ namespace Modules.GameplayModule.Models
                 Floor = Floor,
                 FloorKills = FloorKills,
                 FloorKillsToBoss = Config.FloorKillsToBoss,
+                ShadowAttackBonus = ShadowAttackBonus,
+                Essence = Essence,
+                Reawakenings = _hero.Save.Reawakenings,
+                EssenceBonus = EssenceBonus,
+                CanReawaken = CanReawaken,
+                ReawakenMinFloor = Config.ReawakenMinFloor,
+                EssenceOnReawaken = EssenceOnReawaken,
+                BestFloor = _hero.Save.BestFloor,
             };
+
+            foreach (ShadowSVO shadow in _hero.Save.Shadows)
+                state.Shadows.Add(shadow.Look);
+
+            foreach (ShopItemVO item in _hero.Shop)
+            {
+                long cost = CostOf(item);
+                bool isMaxed = IsMaxed(item);
+                state.Shop.Add(new ShopItemStateVO
+                {
+                    Kind = item.Config.Kind,
+                    Title = item.Config.Title,
+                    Description = item.Config.Description,
+                    Level = item.Save.Count,
+                    MaxLevel = item.Config.MaxLevel,
+                    Cost = cost,
+                    IsMaxed = isMaxed,
+                    CanAfford = !isMaxed && _hero.Save.Gold >= cost,
+                });
+            }
 
             foreach (PartyMemberVO member in _hero.Members)
             {
@@ -270,14 +376,31 @@ namespace Modules.GameplayModule.Models
 
         public void Save()
         {
+            _hero.Save.LastSavedTicks = System.DateTime.UtcNow.Ticks;
             PlayerPrefs.SetString(GameplayConstants.SAVE_KEY, JsonUtility.ToJson(_hero.Save));
             PlayerPrefs.Save();
         }
 
-        /// <summary>The sum of the stacks of one kind that reach this member - or, with no member, the whole party.</summary>
+        /// <summary>
+        /// The sum of everything of one kind that reaches this member - or, with no member, the whole
+        /// party: level-up stacks, shop levels, and for some kinds the shadow army and Essence.
+        /// </summary>
         private float Stacked(UpgradeKind kind, PartyMemberVO member)
         {
             float total = 0f;
+
+            foreach (ShopItemVO item in _hero.Shop)
+            {
+                if (item.Config.Kind == kind)
+                    total += item.Config.Amount * item.Save.Count;
+            }
+
+            if (kind == UpgradeKind.Attack)
+                total += ShadowAttackBonus;
+
+            if (kind is UpgradeKind.Attack or UpgradeKind.Health or UpgradeKind.Gold or UpgradeKind.Exp)
+                total += EssenceBonus;
+
             foreach (UpgradeVO upgrade in _hero.Upgrades.Values)
             {
                 UpgradeCVO config = upgrade.Config;
@@ -342,6 +465,30 @@ namespace Modules.GameplayModule.Models
             }
         }
 
+        /// <summary>The config decides what the shop sells, in its order; the levels bought attach by id, and an item never bought starts at zero.</summary>
+        private void FillShop()
+        {
+            var saved = new Dictionary<string, UpgradeSVO>();
+            foreach (UpgradeSVO save in _hero.Save.ShopItems)
+            {
+                if (save != null && !string.IsNullOrEmpty(save.Id))
+                    saved[save.Id] = save;
+            }
+
+            foreach (ShopItemCVO config in Config.Shop)
+            {
+                if (!saved.TryGetValue(config.Id ?? string.Empty, out UpgradeSVO save))
+                {
+                    save = new UpgradeSVO { Id = config.Id };
+                    _hero.Save.ShopItems.Add(save);
+                    saved[save.Id ?? string.Empty] = save;
+                }
+
+                save.Count = Mathf.Max(0, save.Count);
+                _hero.Shop.Add(new ShopItemVO { Config = config, Save = save });
+            }
+        }
+
         /// <summary>The recruited heroes in the order the config lists them, so a new recruit takes its place in the formation.</summary>
         private void FillMembers()
         {
@@ -388,6 +535,11 @@ namespace Modules.GameplayModule.Models
             save.PendingUpgrades = Mathf.Max(0, save.PendingUpgrades);
             save.Recruited ??= new List<PartyRole>();
             save.Upgrades ??= new List<UpgradeSVO>();
+            save.ShopItems ??= new List<UpgradeSVO>();
+            save.Shadows ??= new List<ShadowSVO>();
+            save.Essence = Mathf.Max(0, save.Essence);
+            save.Reawakenings = Mathf.Max(0, save.Reawakenings);
+            save.BestFloor = Mathf.Max(save.Floor, save.BestFloor);
             return save;
         }
 

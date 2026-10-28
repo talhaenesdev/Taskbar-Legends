@@ -66,5 +66,37 @@ namespace Modules.GameplayModule.Data.UnityObjects
 
         /// <summary>Ordered from the lowest MinLevel up.</summary>
         [Header("Ranks")] public List<RankCVO> Ranks = new();
+
+        /// <summary>Time away shorter than this earns nothing.</summary>
+        [Header("Offline")] public float OfflineMinSeconds = 60f;
+
+        /// <summary>Time away past this earns nothing more.</summary>
+        public float OfflineMaxHours = 8f;
+
+        /// <summary>The kills an hour of play is counted as, before efficiency.</summary>
+        public float OfflineKillsPerMinute = 8f;
+
+        /// <summary>The share of those kills actually rewarded while away.</summary>
+        [Range(0f, 1f)] public float OfflineEfficiency = 0.5f;
+
+        /// <summary>Permanent improvements bought with gold; a purchase names an item by its index here.</summary>
+        [Header("Shop")] public List<ShopItemCVO> Shop = new();
+
+        /// <summary>The chance a defeated boss rises as a shadow soldier.</summary>
+        [Header("Shadows")] [Range(0f, 1f)] public float ShadowChance = 0.5f;
+
+        /// <summary>Party attack each shadow soldier adds, as a share.</summary>
+        public float ShadowAttackBonus = 0.04f;
+
+        [Min(0)] public int MaxShadows = 12;
+
+        /// <summary>The floor the party has to reach before it may reawaken.</summary>
+        [Header("Reawakening")] [Min(1)] public int ReawakenMinFloor = 10;
+
+        /// <summary>Essence earned per floor reached, rounded; never less than one.</summary>
+        public float EssencePerFloor = 0.5f;
+
+        /// <summary>Attack, HP, gold and EXP each Essence adds, as a share.</summary>
+        public float EssenceBonus = 0.04f;
     }
 }

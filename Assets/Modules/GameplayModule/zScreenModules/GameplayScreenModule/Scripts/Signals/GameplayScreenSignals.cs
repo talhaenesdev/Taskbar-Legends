@@ -35,5 +35,11 @@ namespace Modules.GameplayModule.GameplayScreenModule.Signals
     {
         /// <summary>The player clicked a card: the offer's id, and the card's index.</summary>
         public Signal<int, int> UpgradeChosen = new();
+
+        /// <summary>The player clicked Buy on the shop item at that index.</summary>
+        public Signal<int> ShopItemChosen = new();
+
+        /// <summary>The player confirmed a Reawakening.</summary>
+        public Signal ReawakenChosen = new();
     }
 }

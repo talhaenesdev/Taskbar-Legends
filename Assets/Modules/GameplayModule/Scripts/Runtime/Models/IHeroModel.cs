@@ -84,6 +84,34 @@ namespace Modules.GameplayModule.Models
         void Recruit(PartyMemberCVO member);
         void Stack(UpgradeCVO upgrade);
 
+        /// <summary>Seconds between the last save and this start; zero once the time away has been rewarded.</summary>
+        double SecondsAway { get; }
+        void ClearSecondsAway();
+        void CountKills(int count);
+
+        /// <summary>The shop item at that index of the config's list; null when there is none.</summary>
+        ShopItemVO FindShopItem(int index);
+        bool IsMaxed(ShopItemVO item);
+        long CostOf(ShopItemVO item);
+
+        /// <summary>Pays for the next level of the item. False when it is maxed or the gold is short.</summary>
+        bool TryBuy(ShopItemVO item);
+
+        int ShadowCount { get; }
+        bool HasShadowRoom { get; }
+        float ShadowAttackBonus { get; }
+        void AddShadow(string name, Shared.Enums.EnemyLook look);
+
+        int Essence { get; }
+        float EssenceBonus { get; }
+
+        /// <summary>True once the party has reached the floor a Reawakening asks for.</summary>
+        bool CanReawaken { get; }
+        int EssenceOnReawaken { get; }
+
+        /// <summary>Starts the climb over for Essence; the shop, the shadows and the Essence are kept. The Essence gained is handed back.</summary>
+        int Reawaken();
+
         HeroStateVO GetState();
         void Save();
     }

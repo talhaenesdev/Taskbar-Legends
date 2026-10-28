@@ -40,10 +40,17 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _signals.Incoming.ShowHeal.AddListener(_view.ShowHeal);
             _signals.Incoming.ShowUpgradeOffer.AddListener(_view.ShowUpgradeOffer);
             _signals.Incoming.HideUpgradeOffer.AddListener(_view.HideUpgradeOffer);
+            _internalSignals.SettingsChanged.AddListener(_view.ShowSettings);
 
             _view.DragBegan += OnDragBegan;
             _view.Dragged += OnDragged;
             _view.UpgradeChosen += OnUpgradeChosen;
+            _view.ShopItemChosen += OnShopItemChosen;
+            _view.ReawakenChosen += OnReawakenChosen;
+            _view.OpacityClicked += OnOpacityClicked;
+            _view.TopmostClicked += OnTopmostClicked;
+            _view.StartWithWindowsClicked += OnStartWithWindowsClicked;
+            _view.TrayClicked += OnTrayClicked;
         }
 
         private void OnScreenHidden(IScreenBody screen)
@@ -57,10 +64,17 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _signals.Incoming.ShowHeal.RemoveListener(_view.ShowHeal);
             _signals.Incoming.ShowUpgradeOffer.RemoveListener(_view.ShowUpgradeOffer);
             _signals.Incoming.HideUpgradeOffer.RemoveListener(_view.HideUpgradeOffer);
+            _internalSignals.SettingsChanged.RemoveListener(_view.ShowSettings);
 
             _view.DragBegan -= OnDragBegan;
             _view.Dragged -= OnDragged;
             _view.UpgradeChosen -= OnUpgradeChosen;
+            _view.ShopItemChosen -= OnShopItemChosen;
+            _view.ReawakenChosen -= OnReawakenChosen;
+            _view.OpacityClicked -= OnOpacityClicked;
+            _view.TopmostClicked -= OnTopmostClicked;
+            _view.StartWithWindowsClicked -= OnStartWithWindowsClicked;
+            _view.TrayClicked -= OnTrayClicked;
         }
 
         private void OnUpgradeChosen(int offerId, int index)
@@ -69,6 +83,54 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
                 return;
 
             _signals.Outgoing.UpgradeChosen.Dispatch(offerId, index);
+        }
+
+        private void OnShopItemChosen(int index)
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _signals.Outgoing.ShopItemChosen.Dispatch(index);
+        }
+
+        private void OnReawakenChosen()
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _signals.Outgoing.ReawakenChosen.Dispatch();
+        }
+
+        private void OnOpacityClicked()
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _internalSignals.OpacityClicked.Dispatch();
+        }
+
+        private void OnTopmostClicked()
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _internalSignals.TopmostClicked.Dispatch();
+        }
+
+        private void OnStartWithWindowsClicked()
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _internalSignals.StartWithWindowsClicked.Dispatch();
+        }
+
+        private void OnTrayClicked()
+        {
+            if (!_view.Data.HasState(ScreenState.AvailableToSendSignal))
+                return;
+
+            _internalSignals.TrayClicked.Dispatch();
         }
 
         private void OnDragBegan()

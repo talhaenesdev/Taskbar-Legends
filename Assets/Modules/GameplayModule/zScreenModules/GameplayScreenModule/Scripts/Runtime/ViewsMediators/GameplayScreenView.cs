@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using FlowIoC.BaseModule.Injectable.Components;
 using FlowIoC.ScreenModule.ViewsMediators.Screen;
+using Modules.GameplayModule.GameplayScreenModule.Data.ValueObjects;
 using Modules.GameplayModule.GameplayScreenModule.Entities;
 using Modules.GameplayModule.Shared.Data.ValueObjects;
 using Modules.GameplayModule.Shared.Enums;
@@ -49,7 +50,19 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             public Text Description;
         }
 
+        [Serializable]
+        public class ShopRow
+        {
+            public Button Buy;
+            public Image Icon;
+            public Text Title;
+            public Text Description;
+            public Text Cost;
+        }
+
         private const float FLOOR_Y = 58f;
+        private const int MAX_QUEUED_ANNOUNCEMENTS = 5;
+        private const float SHADOW_FRAME_SECONDS = 0.45f;
         private const float FRONT_X = 290f;
         private const float MEMBER_SPACING = 58f;
         private const float ENEMY_HOME_X = 470f;
@@ -128,11 +141,52 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
         /// <summary>One per PartyRole, in the enum's order.</summary>
         [SerializeField] private Sprite[] _roleIcons;
 
+        [Header("Toolbar and panels")]
+        [SerializeField] private Button _shopButton;
+        [SerializeField] private Button _awakenButton;
+        [SerializeField] private Button _settingsButton;
+        [SerializeField] private GameObject _shopPanel;
+        [SerializeField] private GameObject _awakenPanel;
+        [SerializeField] private GameObject _settingsPanel;
+        [SerializeField] private Button[] _closeButtons;
+
+        [SerializeField] private Text _shopGoldText;
+        [SerializeField] private ShopRow[] _shopRows;
+        [SerializeField] private Color _affordColor = new(1f, 0.83f, 0.35f);
+        [SerializeField] private Color _unaffordColor = new(0.55f, 0.6f, 0.7f);
+        [SerializeField] private Color _maxedColor = new(0.45f, 0.9f, 0.5f);
+
+        [SerializeField] private Text _awakenText;
+        [SerializeField] private Button _awakenConfirm;
+        [SerializeField] private Text _awakenConfirmText;
+
+        [SerializeField] private Button _opacityButton;
+        [SerializeField] private Button _topmostButton;
+        [SerializeField] private Button _startWithWindowsButton;
+        [SerializeField] private Button _trayButton;
+        [SerializeField] private Text _opacityText;
+        [SerializeField] private Text _topmostText;
+        [SerializeField] private Text _startWithWindowsText;
+
+        [Header("Shadow army")]
+        [SerializeField] private Image[] _shadowSlots;
+        [SerializeField] private Color _shadowTint = new(0.78f, 0.6f, 1f, 0.85f);
+        [SerializeField] private Text _essenceText;
+
         public Action DragBegan;
         public Action Dragged;
 
         /// <summary>A card was clicked: the offer's id, and the card's index.</summary>
         public Action<int, int> UpgradeChosen;
+
+        /// <summary>Buy was clicked on the shop row at that index.</summary>
+        public Action<int> ShopItemChosen;
+
+        public Action ReawakenChosen;
+        public Action OpacityClicked;
+        public Action TopmostClicked;
+        public Action StartWithWindowsClicked;
+        public Action TrayClicked;
 
         private int _offerId;
         private float _offerSeconds;
@@ -153,6 +207,9 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
         private bool _isWalking;
         private Coroutine _transition;
         private Coroutine _announcement;
+        private readonly Queue<string> _announcements = new();
+        private readonly List<EnemyBody> _shadowBodies = new();
+        private float _shadowClock;
 
         public void OnBeginDrag(PointerEventData eventData) => DragBegan?.Invoke();
         public void OnDrag(PointerEventData eventData) => Dragged?.Invoke();
@@ -206,6 +263,81 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
                 if (!slot.Actor.gameObject.activeSelf)
                     slot.HpBar.gameObject.SetActive(false);
             }
+
+            _essenceText.text = hero.Essence > 0 || hero.Shadows.Count > 0
+                ? $"ESSENCE {hero.Essence}  ·  SHADOWS {hero.Shadows.Count}"
+                : string.Empty;
+
+            ShowShadows(hero);
+            ShowShop(hero);
+            ShowAwakening(hero);
+        }
+
+        public void ShowSettings(WindowSettingsVO settings)
+        {
+            _opacityText.text = $"Opacity:  {Mathf.RoundToInt(settings.Opacity * 100f)}%";
+            _topmostText.text = $"Always on top:  {(settings.IsTopmost ? "ON" : "OFF")}";
+            _startWithWindowsText.text = $"Start with Windows:  {(settings.StartsWithWindows ? "ON" : "OFF")}";
+        }
+
+        private void ShowShadows(HeroStateVO hero)
+        {
+            // The newest shadows stand in the line; the army beyond the slots is only counted.
+            _shadowBodies.Clear();
+            int first = Mathf.Max(0, hero.Shadows.Count - _shadowSlots.Length);
+            for (int i = first; i < hero.Shadows.Count; i++)
+            {
+                EnemyLook look = hero.Shadows[i];
+                _shadowBodies.Add(Array.Find(_enemyBodies, b => b.Look == look) ?? _enemyBodies[0]);
+            }
+
+            for (int i = 0; i < _shadowSlots.Length; i++)
+            {
+                bool isUsed = i < _shadowBodies.Count;
+                _shadowSlots[i].gameObject.SetActive(isUsed);
+                if (!isUsed) continue;
+
+                _shadowSlots[i].sprite = _shadowBodies[i].Idle[0];
+                _shadowSlots[i].color = _shadowTint;
+            }
+        }
+
+        private void ShowShop(HeroStateVO hero)
+        {
+            _shopGoldText.text = $"{hero.Gold:N0} G";
+
+            for (int i = 0; i < _shopRows.Length; i++)
+            {
+                ShopRow row = _shopRows[i];
+                bool isUsed = i < hero.Shop.Count;
+                row.Buy.gameObject.SetActive(isUsed);
+                if (!isUsed) continue;
+
+                ShopItemStateVO item = hero.Shop[i];
+                string level = item.MaxLevel > 0 ? $"{item.Level}/{item.MaxLevel}" : item.Level.ToString();
+                row.Title.text = $"{item.Title}  Lv {level}";
+                row.Description.text = item.Description;
+                row.Icon.sprite = _kindIcons[Mathf.Clamp((int) item.Kind, 0, _kindIcons.Length - 1)];
+                row.Cost.text = item.IsMaxed ? "MAX" : $"{item.Cost:N0} G";
+                row.Cost.color = item.IsMaxed ? _maxedColor : item.CanAfford ? _affordColor : _unaffordColor;
+                row.Buy.interactable = item.CanAfford;
+            }
+        }
+
+        private void ShowAwakening(HeroStateVO hero)
+        {
+            string progress = hero.CanReawaken
+                ? $"Reawaken now for  +{hero.EssenceOnReawaken} Essence."
+                : $"Reach floor {hero.ReawakenMinFloor} to reawaken  (now floor {hero.Floor}).";
+
+            _awakenText.text =
+                $"{progress}\n" +
+                "Resets level, gold, floor, recruits and level-up upgrades.\n" +
+                "Keeps the shop, the shadow army and Essence - each Essence adds ATK, HP, gold and EXP.\n" +
+                $"Essence {hero.Essence} (+{Mathf.RoundToInt(hero.EssenceBonus * 100f)}%)  ·  Reawakened {hero.Reawakenings}x  ·  Best floor {hero.BestFloor}";
+
+            _awakenConfirm.interactable = hero.CanReawaken;
+            _awakenConfirmText.text = hero.CanReawaken ? $"REAWAKEN  (+{hero.EssenceOnReawaken})" : "LOCKED";
         }
 
         public void ShowHeal(PartyRole healer, PartyRole target, int amount)
@@ -307,11 +439,14 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
 
         public void AddLog(string line) => _logText.text = line;
 
+        /// <summary>Notices play one after another, so a level, a rank and a floor gained by the same kill are each read.</summary>
         public void Announce(string message)
         {
-            _announcementText.text = $"[SYSTEM]  {message}";
-            if (_announcement != null) StopCoroutine(_announcement);
-            _announcement = StartCoroutine(PlayAnnouncement());
+            if (_announcements.Count >= MAX_QUEUED_ANNOUNCEMENTS)
+                _announcements.Dequeue();
+
+            _announcements.Enqueue(message);
+            _announcement ??= StartCoroutine(PlayAnnouncements());
         }
 
         public override void BeforeScreenActivation()
@@ -332,6 +467,9 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _healTemplate.gameObject.SetActive(false);
             _isOfferUp = false;
             _offerPanel.SetActive(false);
+            _announcements.Clear();
+            _announcement = null;
+            ClosePanels();
 
             foreach (PartySlot slot in _party)
                 slot.Actor.SetDown(false);
@@ -344,12 +482,66 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
                 int index = i;
                 _cards[i].Button.onClick.AddListener(() => UpgradeChosen?.Invoke(_offerId, index));
             }
+
+            for (int i = 0; i < _shopRows.Length; i++)
+            {
+                int index = i;
+                _shopRows[i].Buy.onClick.AddListener(() => ShopItemChosen?.Invoke(index));
+            }
+
+            // Which panel is up is nothing but presentation, so the view settles it itself.
+            _shopButton.onClick.AddListener(() => TogglePanel(_shopPanel));
+            _awakenButton.onClick.AddListener(() => TogglePanel(_awakenPanel));
+            _settingsButton.onClick.AddListener(() => TogglePanel(_settingsPanel));
+            foreach (Button close in _closeButtons)
+                close.onClick.AddListener(ClosePanels);
+
+            _awakenConfirm.onClick.AddListener(() =>
+            {
+                ClosePanels();
+                ReawakenChosen?.Invoke();
+            });
+            _opacityButton.onClick.AddListener(() => OpacityClicked?.Invoke());
+            _topmostButton.onClick.AddListener(() => TopmostClicked?.Invoke());
+            _startWithWindowsButton.onClick.AddListener(() => StartWithWindowsClicked?.Invoke());
+            _trayButton.onClick.AddListener(() =>
+            {
+                ClosePanels();
+                TrayClicked?.Invoke();
+            });
         }
 
         private void OnDisable()
         {
             foreach (UpgradeCard card in _cards)
                 card.Button.onClick.RemoveAllListeners();
+            foreach (ShopRow row in _shopRows)
+                row.Buy.onClick.RemoveAllListeners();
+            foreach (Button close in _closeButtons)
+                close.onClick.RemoveAllListeners();
+
+            _shopButton.onClick.RemoveAllListeners();
+            _awakenButton.onClick.RemoveAllListeners();
+            _settingsButton.onClick.RemoveAllListeners();
+            _awakenConfirm.onClick.RemoveAllListeners();
+            _opacityButton.onClick.RemoveAllListeners();
+            _topmostButton.onClick.RemoveAllListeners();
+            _startWithWindowsButton.onClick.RemoveAllListeners();
+            _trayButton.onClick.RemoveAllListeners();
+        }
+
+        private void TogglePanel(GameObject panel)
+        {
+            bool wasOpen = panel.activeSelf;
+            ClosePanels();
+            panel.SetActive(!wasOpen);
+        }
+
+        private void ClosePanels()
+        {
+            _shopPanel.SetActive(false);
+            _awakenPanel.SetActive(false);
+            _settingsPanel.SetActive(false);
         }
 
         private Dictionary<PartyRole, PartySlot> Slots
@@ -378,6 +570,15 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             {
                 _offerLeft = Mathf.Max(0f, _offerLeft - dt);
                 _offerTimerFill.fillAmount = _offerLeft / _offerSeconds;
+            }
+
+            // The shadow army breathes in place behind the party, each a beat apart.
+            _shadowClock += dt;
+            for (int i = 0; i < _shadowBodies.Count && i < _shadowSlots.Length; i++)
+            {
+                Sprite[] idle = _shadowBodies[i].Idle;
+                int frame = Mathf.FloorToInt(_shadowClock / SHADOW_FRAME_SECONDS + i * 0.5f) % Mathf.Max(1, idle.Length);
+                _shadowSlots[i].sprite = idle[frame];
             }
 
             float step = dt * BAR_EASE_SPEED;
@@ -562,6 +763,17 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             _popupPool.Push(popup);
         }
 
+        private IEnumerator PlayAnnouncements()
+        {
+            while (_announcements.Count > 0)
+            {
+                _announcementText.text = $"[SYSTEM]  {_announcements.Dequeue()}";
+                yield return PlayAnnouncement();
+            }
+
+            _announcement = null;
+        }
+
         private IEnumerator PlayAnnouncement()
         {
             const float fade = 0.25f;
@@ -582,7 +794,6 @@ namespace Modules.GameplayModule.GameplayScreenModule.ViewsMediators
             }
 
             _announcementGroup.alpha = 0f;
-            _announcement = null;
         }
 
         protected override void PlayShowAnimation() => ShowCompleted?.Invoke(this);

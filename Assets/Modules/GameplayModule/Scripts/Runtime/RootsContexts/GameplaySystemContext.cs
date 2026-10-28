@@ -47,6 +47,11 @@ namespace Modules.GameplayModule.RootsContexts
                 .ToSequence<SpawnEnemyCommand>()
                 .ToSequence<AnnounceRunStartedCommand>()
                 .ToSequence<SignalDispatchCommand<string>>(_signals.Outgoing.SystemAnnounced, "You have been chosen as a Player.")
+                .ToSequence<GrantOfflineRewardsCommand>()
+                .ToSequence<ApplyLevelUpsCommand>()
+                .ToSequence<ApplyRankCommand>()
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<SaveHeroCommand>()
                 .ToSequence<OfferUpgradeCommand>()
                 .ToSequence<SignalDispatchCommand>(_internalSignals.Tick);
 
@@ -63,6 +68,7 @@ namespace Modules.GameplayModule.RootsContexts
             CommandBinder.Bind(_internalSignals.EnemyDefeated)
                 .ToSequence<GrantRewardsCommand>()
                 .ToSequence<JudgeFloorProgressCommand>()
+                .ToSequence<ExtractShadowCommand>()
                 .ToSequence<ApplyLevelUpsCommand>()
                 .ToSequence<ApplyRankCommand>()
                 .ToSequence<ReviveFallenCommand>()
@@ -86,6 +92,20 @@ namespace Modules.GameplayModule.RootsContexts
                 .ToSequence<PublishHeroCommand>()
                 .ToSequence<SaveHeroCommand>()
                 .ToSequence<OfferUpgradeCommand>();
+
+            // Gold spent in the shop: a level that outlives every Reawakening.
+            CommandBinder.Bind(_signals.Incoming.BuyShopItem)
+                .ToSequence<BuyShopItemCommand>()
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<SaveHeroCommand>();
+
+            // The climb starts over from floor 1 for Essence; any choice left open goes with it.
+            CommandBinder.Bind(_signals.Incoming.Reawaken)
+                .ToSequence<ReawakenCommand>()
+                .ToSequence<CloseUpgradeOfferCommand>()
+                .ToSequence<SpawnEnemyCommand>()
+                .ToSequence<PublishHeroCommand>()
+                .ToSequence<SaveHeroCommand>();
 
             CommandBinder.Bind(_internalSignals.AutoChooseUpgrade)
                 .ToSequence<ApplyUpgradeCommand>()

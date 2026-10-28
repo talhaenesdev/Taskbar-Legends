@@ -19,8 +19,13 @@ an upgrade when they level up.
 - **Floors and bosses** - ten kills per floor, then the floor's boss. Creatures grow stronger and new
   kinds appear the deeper you go, with the odd Elite among them.
 - **Ranks E to S** - the System announces every level, rank and floor you reach.
+- **Offline rewards** - come back to the kills, EXP and gold your party earned while the game was closed (up to 8 hours).
+- **Shop** - spend gold on permanent upgrades: attack, HP, crit, regeneration, gold and EXP.
+- **Shadow army** - defeated bosses may rise as shadow soldiers ("Arise!"), each adding party attack and standing behind your heroes.
+- **Reawakening** - from floor 10, start the climb over for Essence, a permanent bonus to attack, HP, gold and EXP. The shop and the shadows stay.
 - **Taskbar mode** - a borderless, always-on-top 640x240 window docked above the taskbar. Drag it
-  anywhere; it keeps fighting while another window has focus.
+  anywhere; it keeps fighting while another window has focus. Settings let you change its opacity, turn
+  always-on-top off, start it with Windows, or hide it to the notification area.
 - **Progress is saved** after every kill.
 
 ## Running it

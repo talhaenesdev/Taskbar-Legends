@@ -17,6 +17,12 @@ namespace Modules.GameplayModule.Signals
 
         /// <summary>The player picked a card of a level-up choice: the offer's id, and the card's index.</summary>
         public Signal<int, int> ChooseUpgrade = new();
+
+        /// <summary>Buy the next level of the shop item at that index.</summary>
+        public Signal<int> BuyShopItem = new();
+
+        /// <summary>Start the climb over for Essence, when the party is deep enough.</summary>
+        public Signal Reawaken = new();
     }
 
     public class GameplaySignalsOutgoing

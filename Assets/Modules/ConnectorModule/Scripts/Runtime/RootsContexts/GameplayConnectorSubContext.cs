@@ -45,8 +45,15 @@ namespace Modules.ConnectorModule.RootsContexts
             outgoing.UpgradeOfferClosed.Connect(screen.HideUpgradeOffer, GROUP);
         }
 
-        private void OutgoingSignals() =>
-            _gameplayScreenSignals.Outgoing.UpgradeChosen.Connect(_gameplaySignals.Incoming.ChooseUpgrade, GROUP);
+        private void OutgoingSignals()
+        {
+            GameplayScreenSignalsOutgoing screen = _gameplayScreenSignals.Outgoing;
+            GameplaySignalsIncoming incoming = _gameplaySignals.Incoming;
+
+            screen.UpgradeChosen.Connect(incoming.ChooseUpgrade, GROUP);
+            screen.ShopItemChosen.Connect(incoming.BuyShopItem, GROUP);
+            screen.ReawakenChosen.Connect(incoming.Reawaken, GROUP);
+        }
 
         public override void DestroyContext()
         {

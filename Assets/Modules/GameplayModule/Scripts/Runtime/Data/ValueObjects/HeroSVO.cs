@@ -21,5 +21,19 @@ namespace Modules.GameplayModule.Data.ValueObjects
 
         public List<PartyRole> Recruited = new();
         public List<UpgradeSVO> Upgrades = new();
+
+        /// <summary>When the progress was last saved, in UTC ticks - what the time away is measured from.</summary>
+        public long LastSavedTicks;
+
+        // Everything below survives a Reawakening.
+
+        /// <summary>Levels bought in the shop, by item id.</summary>
+        public List<UpgradeSVO> ShopItems = new();
+
+        public List<ShadowSVO> Shadows = new();
+
+        public int Essence;
+        public int Reawakenings;
+        public int BestFloor = 1;
     }
 }

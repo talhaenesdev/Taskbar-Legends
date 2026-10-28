@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Modules.Gameplay::Modules.GameplayModule.Data.UnityObjects.CD_Gameplay
   TurnSeconds: 0.45
   MinTurnSeconds: 0.2
-  EnemyArrivalTurns: 3
+  EnemyArrivalSeconds: 1.9
   EnemyAttackEveryTurns: 2
   ReviveShareAfterKill: 0.35
   HealBelowShare: 0.7
@@ -365,3 +365,62 @@ MonoBehaviour:
   - Rank: 5
     MinLevel: 55
     Title: S-Rank Hunter
+  OfflineMinSeconds: 60
+  OfflineMaxHours: 8
+  OfflineKillsPerMinute: 8
+  OfflineEfficiency: 0.5
+  Shop:
+  - Id: shop_attack
+    Kind: 1
+    Amount: 0.05
+    BaseCost: 60
+    CostGrowth: 1.28
+    MaxLevel: 60
+    Title: Sharpened Blades
+    Description: +5% party attack per level
+  - Id: shop_health
+    Kind: 2
+    Amount: 0.06
+    BaseCost: 60
+    CostGrowth: 1.28
+    MaxLevel: 60
+    Title: Hunter's Vitality
+    Description: +6% party HP per level
+  - Id: shop_crit
+    Kind: 3
+    Amount: 0.01
+    BaseCost: 150
+    CostGrowth: 1.45
+    MaxLevel: 20
+    Title: Assassin's Focus
+    Description: +1% crit chance per level
+  - Id: shop_regen
+    Kind: 5
+    Amount: 0.003
+    BaseCost: 200
+    CostGrowth: 1.5
+    MaxLevel: 15
+    Title: Healing Potion Stock
+    Description: +0.3% HP regen a turn per level
+  - Id: shop_gold
+    Kind: 6
+    Amount: 0.05
+    BaseCost: 120
+    CostGrowth: 1.35
+    MaxLevel: 40
+    Title: Mana Crystal Trade
+    Description: +5% gold per level
+  - Id: shop_exp
+    Kind: 7
+    Amount: 0.05
+    BaseCost: 120
+    CostGrowth: 1.35
+    MaxLevel: 40
+    Title: Dungeon Insight
+    Description: +5% EXP per level
+  ShadowChance: 0.5
+  ShadowAttackBonus: 0.04
+  MaxShadows: 12
+  ReawakenMinFloor: 10
+  EssencePerFloor: 0.5
+  EssenceBonus: 0.04
